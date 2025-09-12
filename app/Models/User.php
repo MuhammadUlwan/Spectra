@@ -2,47 +2,75 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+// 🔽 import semua relasi agar editor paham
+use App\Models\Investment;
+use App\Models\Referral;
+use App\Models\Commission;
+use App\Models\Profit;
+use App\Models\Withdrawal;
+use App\Models\Notification;
+
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
+        'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'password' => 'hashed',
+    ];
+
+    /* ========================
+     |  RELASI ANTAR MODEL
+     |======================== */
+
+    public function investments()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasMany(Investment::class);
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(Referral::class, 'sponsor_id');
+    }
+
+    public function commissions()
+    {
+        return $this->hasMany(Commission::class);
+    }
+
+    public function deposits()
+    {
+        return $this->hasMany(Investment::class, 'user_id');
+    }
+
+    public function profits()
+    {
+        return $this->hasMany(Profit::class, 'user_id');
+    }
+
+    public function withdrawals()
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 }

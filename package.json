@@ -22,6 +22,7 @@
     "@heroicons/vue": "^2.2.0",
     "@inertiajs/progress": "^0.2.7",
     "@inertiajs/vue3": "^2.1.5",
-    "@vitejs/plugin-vue": "^6.0.1"
+    "@vitejs/plugin-vue": "^6.0.1",
+    "swiper": "^12.0.1"
   }
 }

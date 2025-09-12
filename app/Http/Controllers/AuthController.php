@@ -2,71 +2,89 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
-use App\Models\User;
 
 class AuthController extends Controller
 {
-    // Tampilkan halaman login
+    /**
+     * Show Login Page
+     */
     public function showLogin()
     {
         return Inertia::render('Auth/Login');
     }
 
-    // Proses login
+    /**
+     * Handle Login
+     */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required']
-        ]);
+        $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
-            $request->session()->regenerate(); // Prevent session fixation
-            return redirect()->intended('/dashboard');
+            $request->session()->regenerate();
+
+            // Solusi fix: pakai Inertia::location agar frontend langsung redirect
+            return Inertia::location(route('dashboard'));
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password salah',
+            'email' => 'Email atau password salah.',
         ]);
     }
 
-    // Tampilkan halaman register
+    /**
+     * Show Register Page
+     */
     public function showRegister()
     {
         return Inertia::render('Auth/Register');
     }
 
-    // Proses register
+    /**
+     * Handle Register
+     */
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'], // password_confirmation harus ada di form
+            'name'             => ['required', 'string', 'max:255'],
+            'username'         => ['required', 'string', 'max:255', 'unique:users,username'],
+            'email'            => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'wa'               => ['required', 'string', 'max:20'],
+            'konsultan_kode'   => ['nullable', 'string', 'max:50'],
+            'password'         => ['required', 'string', 'min:6'],
         ]);
 
+        // Simpan user baru
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'name'          => $validated['name'],
+            'username'      => $validated['username'],
+            'email'         => $validated['email'],
+            'phone'         => $validated['wa'],
+            'password'      => bcrypt($validated['password']),
+            'role'          => 'investor',
+            'is_consultant' => 0,
+            'referral_code' => $validated['konsultan_kode'] ?? null,
         ]);
 
         Auth::login($user);
 
-        return redirect('/dashboard');
+        return redirect()->route('dashboard');
     }
 
-    // Logout
+    /**
+     * Logout
+     */
     public function logout(Request $request)
     {
         Auth::logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return Inertia::location(route('login'));
     }
 }
