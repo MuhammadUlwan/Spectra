@@ -27,7 +27,14 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Solusi fix: pakai Inertia::location agar frontend langsung redirect
+            $user = Auth::user();
+
+            // Redirect sesuai role
+            if ($user->role === 'admin') {
+                return Inertia::location(route('admin.dashboard'));
+            }
+
+            // Default untuk investor/konsultan
             return Inertia::location(route('dashboard'));
         }
 

@@ -1,4 +1,6 @@
 <template>
+    <AppBackground bgClass="bg-gradient-to-r from-blue-600 to-green-400">
+
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-indigo-100 p-4">
     <div class="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
 
@@ -71,12 +73,14 @@
       </div>
     </div>
   </div>
+  </AppBackground>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
 import { Inertia } from '@inertiajs/inertia'
 import { Link } from '@inertiajs/vue3'
+import AppBackground from '@/Layouts/AppBackground.vue';
 import logo from '../../assets/logo.png'
 
 const form = reactive({ email: '', password: '' })

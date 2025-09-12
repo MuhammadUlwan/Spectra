@@ -20,12 +20,6 @@ class SettingSeeder extends Seeder
         ['key_name' => 'bonus_profit_extra', 'value' => '1.25'],
         ['key_name' => 'currency', 'value' => 'USD'],
 
-        // 🔹 Tambahan untuk announcement slider (bisa banyak image, dipisahkan koma atau json)
-        ['key_name' => 'announcement_slider', 'value' => json_encode([
-            '/storage/slider/slider1.jpg',
-            '/storage/slider/slider2.jpg',
-            '/storage/slider/slider3.jpg',
-        ])],
     ];
 
         foreach ($settings as $set) {

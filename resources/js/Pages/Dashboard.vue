@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
+  <AppBackground bgClass="bg-gradient-to-r from-blue-600 to-green-400">
+  <div class="min-h-screen flex flex-col">
     <!-- Navbar -->
     <nav class="bg-white shadow-lg p-4 flex justify-between items-center">
       <div class="flex items-center">
@@ -24,10 +25,13 @@
         <transition name="fade">
           <div v-if="dropdownOpen" class="absolute right-0 mt-12 w-40 bg-white shadow-lg rounded-lg overflow-hidden z-50">
             <a :href="profileUrl" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profil</a>
-            <form :action="logoutUrl" method="POST">
-              <input type="hidden" name="_token" :value="csrf" />
-              <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Keluar</button>
-            </form>
+
+            <button
+              @click.prevent="logout"
+              class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+            >
+              Keluar
+            </button>
           </div>
         </transition>
       </div>
@@ -128,12 +132,15 @@
 
     <div class="h-16"></div>
   </div>
+  </AppBackground>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { usePage} from '@inertiajs/vue3';
+import { Inertia } from '@inertiajs/inertia';
 import { Swiper, SwiperSlide } from 'swiper/vue';
+import AppBackground from '@/Layouts/AppBackground.vue';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
 // CSS Swiper
@@ -173,6 +180,17 @@ const dropdownOpen = ref(false);
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value;
 }
+
+// Logout via Inertia
+function logout() {
+  Inertia.post(logoutUrl, {}, {
+    onSuccess: () => {
+      // akan otomatis redirect sesuai controller (Inertia::location)
+    }
+  });
+}
+
+// Click outside untuk tutup dropdown
 document.addEventListener('click', (e) => {
   const dropdown = e.target.closest('.relative');
   if (!dropdown) dropdownOpen.value = false;

@@ -1,4 +1,5 @@
 <template>
+  <AppLayout>
   <div class="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col items-center">
     <!-- Header -->
     <div class="w-full max-w-4xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -139,11 +140,13 @@
       </div>
     </transition>
   </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
+import AppLayout from "@/Layouts/AppLayout.vue"
 
 const { props } = usePage()
 const user = props.auth?.user || {}

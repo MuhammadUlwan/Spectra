@@ -1,4 +1,5 @@
 <template>
+  <AppLayout>
   <div class="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col items-center">
 
     <!-- Header -->
@@ -84,11 +85,13 @@
       </div>
     </transition>
   </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
+import AppLayout from "@/Layouts/AppLayout.vue"
 
 const { props } = usePage()
 
