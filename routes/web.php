@@ -9,6 +9,9 @@ use App\Http\Controllers\DepositController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TarikTunaiController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\CareerController;
+use App\Http\Controllers\PengaturanController;
 use App\Models\Announcement;
 
 // Default Route
@@ -21,6 +24,17 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    // Lupa Password
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+    Route::get('/reset-password', [ForgotPasswordController::class, 'showResetForm'])
+    ->name('password.reset');
+
+    // Proses submit reset password
+    Route::post('/reset-password', [ForgotPasswordController::class, 'reset'])
+        ->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])
@@ -59,6 +73,64 @@ Route::middleware('auth')->group(function () {
             'profileUrl'     => route('profile'),
         ]);
     })->name('dashboard');
+
+    
+
+    // ========================
+    // Halaman Karir (Dashboard Konsultan)
+    // ========================
+    Route::get('/career', function () {
+        $user = Auth::user();
+        
+        // Data statistik untuk dashboard konsultan
+        $stats = [
+            'total_commission' => $user->commissions()->sum('amount'),
+            'referrals' => [
+                'level1' => $user->referrals()->count(),
+                'level2' => $user->referrals()->with('referrals')->get()->pluck('referrals')->flatten()->count()
+            ],
+            'direct_volume' => $user->referrals()->with('deposits')->get()->pluck('deposits')->flatten()->sum('amount'),
+            'bonus_active' => $user->referrals()->with('deposits')->get()->pluck('deposits')->flatten()->sum('amount') >= 10000
+        ];
+        
+        // Riwayat komisi
+        $commissionHistory = $user->commissions()
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get()
+            ->map(function($commission) {
+                return [
+                    'date' => $commission->created_at->format('d M Y'),
+                    'source' => $commission->type === 'sponsor' ? 
+                        ('Sponsor Fee Level ' . $commission->level) : 
+                        ('Profit Sharing Level ' . $commission->level),
+                    'amount' => $commission->amount,
+                    'status' => $commission->status
+                ];
+            });
+
+        return Inertia::render('Career', [
+            'auth' => ['user' => $user],
+            'stats' => $stats,
+            'commissionHistory' => $commissionHistory,
+            'referralLink' => url('/register?ref=' . $user->referral_code),
+            'logoutUrl' => route('logout'),
+            'profileUrl' => route('profile'),
+        ]);
+    })->name('career');
+
+    // ========================
+    // Halaman Pengaturan
+    // ========================
+    Route::get('/pengaturan', function () {
+        $user = Auth::user();
+
+        return Inertia::render('pengaturan', [
+            'auth' => ['user' => $user],
+            'logoutUrl' => route('logout'),
+            'profileUrl' => route('profile'),
+        ]);
+    })->name('pengaturan');
 
     // ========================
     // Investor Routes
@@ -102,16 +174,6 @@ Route::middleware('auth')->group(function () {
                 'profileUrl' => route('profile'),
             ]);
         })->name('admin.deposits.index');
-
-            // Manajemen Withdraw
-        Route::get('/admin/withdraws', function () {
-            $user = Auth::user();
-            return Inertia::render('Admin/AdminWithdraws', [
-                'auth'       => ['user' => $user],
-                'logoutUrl'  => route('logout'),
-                'profileUrl' => route('profile'),
-            ]);
-        })->name('admin.withdraws.index');
 
             // Manajemen kontrak
         Route::get('/admin/contracts', function () {

@@ -42,7 +42,7 @@
       <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-6 text-white shadow-xl">
         <h2 class="text-lg font-semibold opacity-90">TOTAL DOMPET</h2>
         <p class="text-4xl font-bold mt-2">
-          Rp {{ (user.wallet ?? walletBalance).toLocaleString() }}
+          $ {{ (user.wallet ?? walletBalance).toLocaleString() }}
         </p>
         <p class="mt-2 text-blue-100 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,14 +51,13 @@
           {{ user.name }}
         </p>
         <div class="flex mt-4 space-x-3">
-          <button class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium text-sm flex items-center">
-            <i class="fas fa-plus mr-1"></i>
-            Tambah Dana
-          </button>
-          <button class="bg-blue-800 bg-opacity-30 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center">
-            <i class="fas fa-exchange-alt mr-1"></i>
-            Transfer
-          </button>
+        <button 
+          class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium text-sm flex items-center"
+          @click="$inertia.visit('/deposit')"
+        >
+          <i class="fas fa-plus mr-1"></i>
+          Tambah Dana
+        </button>
         </div>
       </div>
     </section>
@@ -172,7 +171,7 @@ const bottomMenu = props.bottomMenu ?? [
   { label: 'Chat', url: '/chat', icon: 'fas fa-comments', active: false },
   { label: 'Beranda', url: '/dashboard', icon: 'fas fa-home', active: true },
   { label: 'Karir', url: '/career', icon: 'fas fa-briefcase', active: false },
-  { label: 'Menu', url: '/menu', icon: 'fas fa-bars', active: false },
+  { label: 'Pengaturan', url: '/pengaturan', icon: 'fas fa-bars', active: false },
 ];
 
 // Dropdown Avatar/Nama

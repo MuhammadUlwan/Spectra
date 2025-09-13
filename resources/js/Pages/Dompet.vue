@@ -1,11 +1,11 @@
 <template>
   <AppLayout>
-  <div class="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col items-center">
+  <div class="bg-gray-50 p-4 md:p-6 flex flex-col items-center">
 
     <!-- Header -->
     <div class="w-full max-w-4xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
       <div>
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Dompet Saya</h1>
+        <h1 class="text-2xl md:text-2xl font-bold text-gray-800">Dompet Saya</h1>
         <p class="text-gray-500 text-sm md:text-base">Kelola saldo dan lihat riwayat transaksi</p>
       </div>
       <button

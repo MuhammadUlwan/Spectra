@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <div class="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+    <div class=" bg-gray-50 p-3 sm:p-4 md:p-6">
       <!-- Header -->
       <div class="max-w-4xl mx-auto mb-3 sm:mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
@@ -124,35 +124,6 @@
             </div>
           </div>
 
-          <!-- Preferensi -->
-          <div v-else-if="activeTab === 'preferences'" class="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 shadow-sm">
-            <h2 class="text-sm sm:text-base font-medium text-gray-700 mb-2 sm:mb-3">Preferensi</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">Tema</label>
-                <select v-model="preferences.theme" class="w-full p-2 border border-gray-300 rounded-md text-xs sm:text-sm">
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-500 mb-1">Bahasa</label>
-                <select v-model="preferences.language" class="w-full p-2 border border-gray-300 rounded-md text-xs sm:text-sm">
-                  <option value="id">Bahasa Indonesia</option>
-                  <option value="en">English</option>
-                </select>
-              </div>
-            </div>
-            <div class="mt-3 sm:mt-4 flex justify-end">
-              <button 
-                class="bg-blue-600 text-white px-3 py-2 rounded-md text-xs sm:text-sm hover:bg-blue-700 transition-colors flex items-center"
-                @click="savePreferences"
-              >
-                <i class="fas fa-save mr-1 text-xs"></i> Simpan Preferensi
-              </button>
-            </div>
-          </div>
-
           <!-- Tagihan -->
           <div v-else-if="activeTab === 'billing'" class="bg-white rounded-lg border border-gray-200 p-4 sm:p-5 shadow-sm">
             <h2 class="text-sm sm:text-base font-medium text-gray-700 mb-2 sm:mb-3">Riwayat Tagihan</h2>
@@ -231,9 +202,6 @@ const referral = props.referral || { qr: '', code: user.referral_code }
 const activeTab = ref('profile')
 const menuItems = [
   { name: 'profile', label: 'Informasi Profil', icon: 'fas fa-user' },
-  { name: 'security', label: 'Keamanan', icon: 'fas fa-shield-alt' },
-  { name: 'notifications', label: 'Notifikasi', icon: 'fas fa-bell' },
-  { name: 'preferences', label: 'Preferensi', icon: 'fas fa-cog' },
   { name: 'billing', label: 'Tagihan', icon: 'fas fa-credit-card' },
   { name: 'referral', label: 'Referral', icon: 'fas fa-users' }
 ]

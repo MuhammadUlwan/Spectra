@@ -1,78 +1,134 @@
 <template>
-    <AppBackground bgClass="bg-gradient-to-r from-blue-600 to-green-400">
+  <AppBackground bgClass="bg-gradient-to-r from-blue-600 to-green-400">
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-indigo-100 p-4">
+      <div class="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
 
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-indigo-100 p-4">
-    <div class="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- Kiri - Ilustrasi -->
+        <div class="md:w-2/5 bg-gradient-to-br from-green-600 to-indigo-700 text-white p-8 flex flex-col justify-center items-center">
+          <h1 class="text-3xl font-bold mb-2 text-center">Selamat Datang di Spectra</h1>
+          <p class="text-sm opacity-90 mb-6 text-center">Masuk untuk mengakses dashboard Anda</p>
 
-      <!-- Kiri - Ilustrasi -->
-      <div class="md:w-2/5 bg-gradient-to-br from-green-600 to-indigo-700 text-white p-8 flex flex-col justify-center items-center">
-        <h1 class="text-3xl font-bold mb-2 text-center">Selamat Datang di Spectra</h1>
-        <p class="text-sm opacity-90 mb-6 text-center">Masuk untuk mengakses dashboard Anda</p>
+          <img :src="logo" alt="Logo Spectra" class="h-24 w-24 mb-6 object-contain rounded-full shadow-lg" />
 
-        <img :src="logo" alt="Logo Spectra" class="h-24 w-24 mb-6 object-contain rounded-full shadow-lg" />
+          <p class="text-sm text-center opacity-90">
+            Belum punya akun?
+            <Link href="/register" class="underline font-semibold hover:opacity-80 transition-opacity">Daftar sekarang</Link>
+          </p>
+        </div>
 
-        <p class="text-sm text-center opacity-90">
-          Belum punya akun?
-          <Link href="/register" class="underline font-semibold hover:opacity-80 transition-opacity">Daftar sekarang</Link>
-        </p>
-      </div>
+        <!-- Kanan - Form Login -->
+        <div class="md:w-3/5 p-8 md:p-10">
+          <h2 class="text-2xl md:text-3xl font-bold mb-2 text-gray-800 text-center">Masuk ke Akun</h2>
+          <p class="text-gray-600 text-sm md:text-base mb-6 text-center">Masukkan kredensial Anda untuk melanjutkan</p>
 
-      <!-- Kanan - Form Login -->
-      <div class="md:w-3/5 p-8 md:p-10">
-        <h2 class="text-2xl md:text-3xl font-bold mb-2 text-gray-800 text-center">Masuk ke Akun</h2>
-        <p class="text-gray-600 text-sm md:text-base mb-6 text-center">Masukkan kredensial Anda untuk melanjutkan</p>
+          <form @submit.prevent="submit" class="space-y-6">
+            <!-- Email -->
+            <div>
+              <label for="email" class="block text-gray-700 text-sm font-medium mb-2">Email</label>
+              <input type="email" id="email" v-model="form.email"
+                placeholder="Masukan Email kamu"
+                class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                :class="{'border-red-500': errors.email}"
+                @input="clearError('email')"
+              />
+              <p v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</p>
+            </div>
 
-        <form @submit.prevent="submit" class="space-y-6">
-          <!-- Email -->
-          <div>
-            <label for="email" class="block text-gray-700 text-sm font-medium mb-2">Email</label>
-            <input type="email" id="email" v-model="form.email"
-              placeholder="Masukan Email kamu"
-              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
-              :class="{'border-red-500': errors.email}"
-              @input="clearError('email')"
-            />
-            <p v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</p>
-          </div>
+            <!-- Password Show/Hide -->
+            <div class="relative">
+              <label for="password" class="block text-gray-700 text-sm font-medium mb-2">Kata Sandi</label>
+              <input 
+                :type="showPassword ? 'text' : 'password'" 
+                id="password" 
+                v-model="form.password"
+                placeholder="••••••••"
+                class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                :class="{'border-red-500': errors.password}"
+                @input="clearError('password')"
+              />
+              <button type="button" @click="togglePassword" 
+                class="absolute right-3 top-3.5 h-full flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.053 10.053 0 012.507-4.257m3.37-2.35a9.978 9.978 0 014.666-1.393M15 12a3 3 0 11-6 0 3 3 0 016 0zM3 3l18 18" />
+                </svg>
+              </button>
+              <p v-if="errors.password" class="text-red-500 text-xs mt-1">{{ errors.password }}</p>
+            </div>
 
-          <!-- Password Show/Hide -->
-          <div class="relative">
-            <label for="password" class="block text-gray-700 text-sm font-medium mb-2">Kata Sandi</label>
-            <input 
-              :type="showPassword ? 'text' : 'password'" 
-              id="password" 
-              v-model="form.password"
-              placeholder="••••••••"
-              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
-              :class="{'border-red-500': errors.password}"
-              @input="clearError('password')"
-            />
-            <button type="button" @click="togglePassword" 
-              class="absolute right-3 top-3.5 h-full flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+            <!-- Lupa Password Link -->
+            <div class="flex justify-end">
+                <Link href="/forgot-password" class="text-blue-600 hover:underline">
+                <i class="fas fa-key mr-1 text-xs"></i>
+                Lupa kata sandi?
+              </Link>
+            </div>
+
+            <!-- Tombol Login -->
+            <button type="submit"
+              :disabled="isLoading"
+              class="w-full bg-green-600 text-white py-3 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:bg-green-700 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.053 10.053 0 012.507-4.257m3.37-2.35a9.978 9.978 0 014.666-1.393M15 12a3 3 0 11-6 0 3 3 0 016 0zM3 3l18 18" />
-              </svg>
+              <span v-if="!isLoading">Masuk</span>
+              <span v-else class="flex items-center">
+                <i class="fas fa-circle-notch animate-spin mr-2"></i>
+                Memproses...
+              </span>
             </button>
-            <p v-if="errors.password" class="text-red-500 text-xs mt-1">{{ errors.password }}</p>
-          </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-          <!-- Tombol Login -->
-          <button type="submit"
-            :disabled="isLoading"
-            class="w-full bg-green-600 text-white py-3 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:bg-green-700 flex items-center justify-center"
-          >
-            <span v-if="!isLoading">Masuk</span>
-            <span v-else>Memproses...</span>
+    <!-- Modal Lupa Password -->
+    <div v-if="showForgotPasswordModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl max-w-md w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-800">Reset Kata Sandi</h3>
+          <button @click="showForgotPasswordModal = false" class="text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times"></i>
           </button>
+        </div>
+        
+        <p class="text-sm text-gray-600 mb-4">
+          Masukkan email Anda dan kami akan mengirimkan link untuk reset kata sandi.
+        </p>
+        
+        <form @submit.prevent="submitForgotPassword">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              v-model="forgotPasswordEmail"
+              placeholder="email@example.com"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              required
+            />
+          </div>
+          
+          <div class="flex justify-end space-x-3">
+            <button
+              type="button"
+              @click="showForgotPasswordModal = false"
+              class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              :disabled="isLoadingForgotPassword"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {{ isLoadingForgotPassword ? 'Mengirim...' : 'Kirim Link' }}
+            </button>
+          </div>
         </form>
       </div>
     </div>
-  </div>
   </AppBackground>
 </template>
 
@@ -86,9 +142,11 @@ import logo from '../../assets/logo.png'
 const form = reactive({ email: '', password: '' })
 const errors = reactive({})
 const isLoading = ref(false)
-
-// Show/hide password
 const showPassword = ref(false)
+const showForgotPasswordModal = ref(false)
+const forgotPasswordEmail = ref('')
+const isLoadingForgotPassword = ref(false)
+
 const togglePassword = () => { showPassword.value = !showPassword.value }
 
 const clearError = (field) => {
@@ -107,10 +165,8 @@ const submit = () => {
   isLoading.value = true;
 
   Inertia.post('/login', form, {
-    onSuccess: (page) => {
+    onSuccess: () => {
       isLoading.value = false;
-      // Laravel akan redirect otomatis via Inertia
-      // Jika ingin manual: window.location = page.props.redirect || '/dashboard'
     },
     onError: (serverErrors) => {
       isLoading.value = false;
@@ -123,4 +179,48 @@ const submit = () => {
     }
   });
 }
+
+const submitForgotPassword = async () => {
+  if (!forgotPasswordEmail.value) return;
+  
+  isLoadingForgotPassword.value = true;
+  
+  try {
+    const response = await fetch('/forgot-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+      },
+      body: JSON.stringify({ email: forgotPasswordEmail.value })
+    });
+    
+    if (response.ok) {
+      alert('Link reset kata sandi telah dikirim ke email Anda!');
+      showForgotPasswordModal.value = false;
+      forgotPasswordEmail.value = '';
+    } else {
+      alert('Terjadi kesalahan. Silakan coba lagi.');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Terjadi kesalahan. Silakan coba lagi.');
+  } finally {
+    isLoadingForgotPassword.value = false;
+  }
+}
+
+const loginWithGoogle = () => {
+  // Implement Google OAuth
+  window.location.href = '/auth/google';
+}
+
+const loginWithFacebook = () => {
+  // Implement Facebook OAuth
+  window.location.href = '/auth/facebook';
+}
 </script>
+
+<style scoped>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+</style>

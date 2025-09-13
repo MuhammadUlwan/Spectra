@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-  <div class="min-h-screen bg-gray-50 p-4 md:p-6 flex flex-col items-center">
+  <div class="bg-gray-50 p-4 md:p-6 flex flex-col items-center">
     <!-- Header -->
     <div class="w-full max-w-4xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
       <div>
@@ -24,7 +24,7 @@
         <span class="text-gray-600 font-medium">Saldo Tersedia</span>
       </div>
       <span class="text-xl md:text-2xl font-semibold text-gray-800">
-        Rp {{ formatCurrency(user.wallet || 0) }}
+        $ {{ formatCurrency(user.wallet || 0) }}
       </span>
     </div>
 
@@ -54,7 +54,7 @@
                 <i v-if="isPackageSelected(pkg.id)" class="fas fa-check text-white text-xs"></i>
               </div>
             </div>
-            <p class="text-blue-600 font-bold text-lg mb-2">Rp {{ formatCurrency(pkg.amount) }}</p>
+            <p class="text-blue-600 font-bold text-lg mb-2">$ {{ formatCurrency(pkg.amount) }}</p>
             <div class="flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full w-fit">
               <i class="fas fa-chart-line mr-1.5"></i>
               <span>{{ pkg.interest_rate }}% / bulan</span>
@@ -94,17 +94,17 @@
         <div>
           <div class="flex justify-between items-center mb-2">
             <span class="font-medium">Total Deposit</span>
-            <span class="text-xl font-bold">Rp {{ formatCurrency(totalAmount) }}</span>
+            <span class="text-xl font-bold">${{ formatCurrency(totalAmount) }}</span>
           </div>
           <p class="text-xs text-blue-100 mb-4">Durasi kontrak: {{ totalDuration }} bulan</p>
           <div class="bg-white/20 p-3 rounded-lg mb-4">
             <div class="flex justify-between text-xs text-white mb-1">
               <span>Estimasi keuntungan/bulan:</span>
-              <span>Rp {{ formatCurrency(estimatedProfitPerMonth) }}</span>
+              <span>${{ formatCurrency(estimatedProfitPerMonth) }}</span>
             </div>
             <div class="flex justify-between text-xs text-white">
               <span>Total estimasi keuntungan:</span>
-              <span>Rp {{ formatCurrency(estimatedProfitTotal) }}</span>
+              <span>${{ formatCurrency(estimatedProfitTotal) }}</span>
             </div>
           </div>
         </div>

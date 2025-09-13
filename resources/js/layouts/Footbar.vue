@@ -34,43 +34,72 @@
       <!-- Karir -->
       <div
         class="flex flex-col items-center cursor-pointer"
-        :class="active === 'karir' ? 'text-blue-600' : 'text-gray-600'"
-        @click="goTo('karir')"
+        :class="active === 'career' ? 'text-blue-600' : 'text-gray-600'"
+        @click="goTo('career')"
       >
         <i class="fas fa-briefcase text-xl"></i>
         <span class="text-xs">Karir</span>
       </div>
 
-      <!-- Menu -->
+      <!-- Pengaturan -->
       <div
         class="flex flex-col items-center cursor-pointer"
-        :class="active === 'menu' ? 'text-blue-600' : 'text-gray-600'"
-        @click="goTo('menu')"
+        :class="active === 'pengaturan' ? 'text-blue-600' : 'text-gray-600'"
+        @click="goTo('pengaturan')"
       >
         <i class="fas fa-bars text-xl"></i>
-        <span class="text-xs">Menu</span>
+        <span class="text-xs">Pengaturan</span>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
-import { ref, getCurrentInstance } from 'vue'
+import { ref, getCurrentInstance, onMounted, watch } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 
 const active = ref('dashboard')
-
-// akses $inertia dari instance
 const { proxy } = getCurrentInstance()
+
+// Deteksi halaman aktif berdasarkan URL saat ini
+onMounted(() => {
+  updateActiveTab()
+})
+
+// Listen to page changes
+watch(() => usePage().url, () => {
+  updateActiveTab()
+})
+
+const updateActiveTab = () => {
+  const path = window.location.pathname;
+  if (path.includes('/akademi')) active.value = 'akademi'
+  else if (path.includes('/chat')) active.value = 'chat'
+  else if (path.includes('/dashboard')) active.value = 'dashboard'
+  else if (path.includes('/career')) active.value = 'career'
+  else if (path.includes('/pengaturan')) active.value = 'pengaturan'
+  else active.value = 'dashboard'
+}
 
 const goTo = (page) => {
   active.value = page
 
   switch (page) {
-    case 'akademi': proxy.$inertia.visit('/akademi'); break
-    case 'chat': proxy.$inertia.visit('/chat'); break
-    case 'dashboard': proxy.$inertia.visit('/dashboard'); break
-    case 'karir': proxy.$inertia.visit('/karir'); break
-    case 'menu': proxy.$inertia.visit('/menu'); break
+    case 'akademi': 
+      proxy.$inertia.visit('/akademi'); 
+      break
+    case 'chat': 
+      proxy.$inertia.visit('/chat'); 
+      break
+    case 'dashboard': 
+      proxy.$inertia.visit('/dashboard'); 
+      break
+    case 'career': 
+      proxy.$inertia.visit('/career'); 
+      break
+    case 'pengaturan': 
+      proxy.$inertia.visit('/pengaturan'); 
+      break
   }
 }
 </script>
