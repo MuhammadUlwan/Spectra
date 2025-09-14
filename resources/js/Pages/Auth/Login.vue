@@ -6,11 +6,11 @@
       <div class="md:w-2/5 bg-gradient-to-br from-green-600 to-indigo-700 text-white p-8 flex flex-col justify-center items-center">
         <h1 class="text-3xl font-bold mb-2 text-center">Selamat Datang di Spectra</h1>
         <p class="text-sm opacity-90 mb-6 text-center">Masuk untuk mengakses dashboard Anda</p>
-        
+
         <img :src="logo" alt="Logo Spectra" class="h-24 w-24 mb-6 object-contain rounded-full shadow-lg" />
-        
+
         <p class="text-sm text-center opacity-90">
-          Belum punya akun? 
+          Belum punya akun?
           <Link href="/register" class="underline font-semibold hover:opacity-80 transition-opacity">Daftar sekarang</Link>
         </p>
       </div>
@@ -59,6 +59,7 @@
             <p v-if="errors.password" class="text-red-500 text-xs mt-1">{{ errors.password }}</p>
           </div>
 
+          <!-- Tombol Login -->
           <button type="submit"
             :disabled="isLoading"
             class="w-full bg-green-600 text-white py-3 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 hover:bg-green-700 flex items-center justify-center"
@@ -74,7 +75,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { Inertia } from '@inertiajs/inertia' // ← import Inertia yang benar
+import { Inertia } from '@inertiajs/inertia'
 import { Link } from '@inertiajs/vue3'
 import logo from '../../assets/logo.png'
 
@@ -84,32 +85,38 @@ const isLoading = ref(false)
 
 // Show/hide password
 const showPassword = ref(false)
-const togglePassword = () => showPassword.value = !showPassword.value
+const togglePassword = () => { showPassword.value = !showPassword.value }
 
-const clearError = (field) => { if(errors[field]) delete errors[field] }
+const clearError = (field) => {
+  if (errors[field]) delete errors[field]
+}
 
 const submit = () => {
-  // Reset errors
-  Object.keys(errors).forEach(k => delete errors[k])
+  Object.keys(errors).forEach(k => delete errors[k]);
 
   // Validasi client-side
-  if(!form.email) errors.email = 'Email harus diisi'
-  else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Format email tidak valid'
-  if(!form.password) errors.password = 'Kata sandi harus diisi'
-  if(Object.keys(errors).length) return
+  if (!form.email) errors.email = 'Email harus diisi';
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Format email tidak valid';
+  if (!form.password) errors.password = 'Kata sandi harus diisi';
+  if (Object.keys(errors).length) return;
 
-  isLoading.value = true
+  isLoading.value = true;
 
-  // Kirim request login ke Laravel
   Inertia.post('/login', form, {
-    onSuccess: () => {
-      isLoading.value = false
-      // Laravel akan redirect otomatis ke /dashboard
+    onSuccess: (page) => {
+      isLoading.value = false;
+      // Laravel akan redirect otomatis via Inertia
+      // Jika ingin manual: window.location = page.props.redirect || '/dashboard'
     },
     onError: (serverErrors) => {
-      isLoading.value = false
-      Object.assign(errors, serverErrors)
+      isLoading.value = false;
+      if (serverErrors && serverErrors.errors) {
+        Object.assign(errors, serverErrors.errors);
+      }
+    },
+    onFinish: () => {
+      isLoading.value = false;
     }
-  })
+  });
 }
 </script>

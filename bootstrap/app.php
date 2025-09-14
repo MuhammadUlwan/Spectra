@@ -10,8 +10,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
+    ->withMiddleware(function (Middleware $middleware) {
+        // contoh alias lain sudah ada — tambahkan 'isAdmin' di array ini
+        $middleware->alias([
+            // alias lain...
+            'isAdmin' => \App\Http\Middleware\IsAdmin::class,
+            'setUserLocale' => \App\Http\Middleware\SetUserLocale::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
