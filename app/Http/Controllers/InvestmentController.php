@@ -53,13 +53,17 @@ class InvestmentController extends Controller
     // Admin: lihat semua investasi pending
     public function adminIndex()
     {
-        $investments = Investment::with(['package', 'user'])
-            ->where('status', 'pending')
+        $investments = Investment::with(['user', 'package', 'validator'])
             ->latest()
             ->get();
 
         return Inertia::render('Admin/Investments/Index', [
-            'investments' => $investments
+            'auth' => ['user' => Auth::user()],
+            'investments' => $investments,
+            'currencySymbol' => 'USDT',
+            'profileUrl' => route('profile'),
+            'logoutUrl' => route('logout'),
+            'flash' => session()->get('flash'),
         ]);
     }
 

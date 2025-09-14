@@ -19,7 +19,7 @@ class CreateInvestmentPackagesTable extends Migration
             $table->decimal('amount', 12, 2); // Jumlah uang paket investasi
             $table->integer('duration_months')->default(6); // Durasi investasi dalam bulan (default 6 bulan)
             $table->decimal('profit_percent', 5, 2)->default(7.50); // Persentase profit per bulan (default 7.50%)
-            $table->string('currency', 3)->default('USD'); // Mata uang (USD/IDR)
+            $table->string('currency', 3)->default('USDT'); // Mata uang (USD/IDR)
             $table->timestamps(); // Tanggal dibuat dan diperbarui
         });
     }

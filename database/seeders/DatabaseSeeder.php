@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             InvestmentPackageSeeder::class,
             SettingSeeder::class,
+            InvestmentSeeder::class,
         ]);
     }
 }

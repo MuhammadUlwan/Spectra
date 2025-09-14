@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -27,8 +28,18 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // Solusi fix: pakai Inertia::location agar frontend langsung redirect
-            return Inertia::location(route('dashboard'));
+            $user = Auth::user();
+
+            if ($user->role === 'admin') {
+                return Inertia::location('/admin/dashboard');
+            } elseif ($user->role === 'investor') {
+                return Inertia::location('/dashboard');
+            } else {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Role tidak dikenali.',
+                ]);
+            }
         }
 
         return back()->withErrors([
@@ -58,7 +69,7 @@ class AuthController extends Controller
             'password'         => ['required', 'string', 'min:6'],
         ]);
 
-        // Simpan user baru
+        // Simpan user baru default role = investor
         $user = User::create([
             'name'          => $validated['name'],
             'username'      => $validated['username'],

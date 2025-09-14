@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Investment;
 use App\Models\Profit;
-use App\Models\Setting;
+use App\Models\Commission;
+use App\Models\Announcement;
 
 class DashboardController extends Controller
 {
@@ -14,29 +15,44 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Wallet balance: ambil dari kolom user
-        $walletBalance = $user->wallet ?? 0;
-
-        // Deposit balance: jumlah total investasi aktif
-        $depositBalance = Investment::where('user_id', $user->id)
+        // Deposit aktif
+        $depositBalance = (float) Investment::where('user_id', $user->id)
             ->where('status', 'active')
             ->sum('amount');
+        $depositBalance = round($depositBalance, 2);
 
-        // Total profit: jumlah dari tabel profits
-        $totalProfit = Profit::where('user_id', $user->id)->sum('amount');
+        // Total profit paid via wallet
+        $totalProfit = (float) Profit::where('user_id', $user->id)
+            ->where('status', 'paid')
+            ->where('withdraw_method', 'wallet')
+            ->sum('profit_amount');
+        $totalProfit = round($totalProfit, 2);
 
-        // Announcement: ambil dari settings
-        $announcement = Setting::where('key_name', 'dashboard_announcement')->value('value') 
-            ?? 'Belum ada pengumuman.';
+        // Total commission paid via wallet
+        $totalCommissions = (float) Commission::where('user_id', $user->id)
+            ->where('status', 'paid')
+            ->where('withdraw_method', 'wallet')
+            ->sum('amount');
+        $totalCommissions = round($totalCommissions, 2);
 
-        return Inertia::render('Dashboard', [
-            'auth'           => ['user' => $user],
-            'walletBalance'  => $walletBalance,
-            'depositBalance' => $depositBalance,
-            'totalProfit'    => $totalProfit,
-            'announcement'   => $announcement,
-            'logoutUrl'      => route('logout'),
-            'profileUrl'     => route('profile'),
+        // Total wallet = deposit + profit + commissions
+        $walletBalance = round($depositBalance + $totalProfit + $totalCommissions, 2);
+
+        // Ambil pengumuman aktif
+        $announcements = Announcement::where('active', 1)
+            ->orderBy('order')
+            ->get();
+
+        return Inertia::render('DashboardInvestor', [
+            'auth'             => ['user' => $user],
+            'depositBalance'   => $depositBalance,
+            'totalProfit'      => $totalProfit,
+            'totalCommissions' => $totalCommissions,
+            'walletBalance'    => $walletBalance,
+            'announcements'    => $announcements,
+            'profileUrl'       => route('profile'),
+            'logoutUrl'        => route('logout'),
+            'user_preferences' => $user->preferences,
         ]);
     }
 }

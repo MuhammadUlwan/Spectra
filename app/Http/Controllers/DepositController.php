@@ -2,44 +2,71 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InvestmentPackage;
-use App\Models\Investment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class DepositController extends Controller
 {
+    // Halaman daftar paket deposit/investasi
     public function index()
     {
-        $packages = InvestmentPackage::all();
+        $user = Auth::user();
 
-        return Inertia::render('Deposit', [
-            'auth'     => ['user' => Auth::user()],
+        $packages = DB::table('investment_packages')
+            ->select('id','name','amount','duration_months','profit_percent','currency')
+            ->get()
+            ->map(function($p){
+                $p->profit_15days = round($p->amount * 3.25 / 100, 2);
+                $p->profit_monthly = round($p->amount * 7.5 / 100, 2);
+                $p->total_profit = round($p->profit_monthly * $p->duration_months, 2);
+                return $p;
+            });
+
+        return inertia('Deposit', [
+            'user' => $user,
             'packages' => $packages,
+            'profileUrl' => route('profile'),
+            'logoutUrl' => route('logout')
         ]);
     }
 
+    // Simpan deposit ke database
     public function store(Request $request)
     {
         $request->validate([
-            'package_ids' => 'required|string',
-            'proof'       => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'package_id' => 'required|exists:investment_packages,id',
+            'amount' => 'required|numeric|min:1',
+            'proof_transfer' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
         ]);
 
-        $packageIds = explode(',', $request->package_ids);
+        $user = Auth::user();
 
-        foreach ($packageIds as $packageId) {
-            Investment::create([
-                'user_id'        => Auth::id(),
-                'package_id'     => $packageId,
-                'amount'         => InvestmentPackage::find($packageId)->amount,
-                'start_date'     => now(),
-                'status'         => 'pending',
-                'proof_transfer' => $request->file('proof')->store('proofs', 'public'),
-            ]);
+        $package = DB::table('investment_packages')->where('id', $request->package_id)->first();
+        if (!$package) {
+            return redirect()->back()->with('error', 'Paket tidak ditemukan.');
         }
 
-        return back()->with('success', 'Deposit berhasil, menunggu validasi admin.');
+        // Simpan file bukti transfer dengan nama unik
+        $file = $request->file('proof_transfer');
+        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $proofPath = $file->storeAs('public/deposits', $filename);
+
+        // Simpan ke tabel investments
+        DB::table('investments')->insert([
+            'user_id' => $user->id,
+            'package_id' => $package->id,
+            'amount' => $request->amount,
+            'start_date' => null,
+            'end_date' => null,
+            'status' => 'pending',
+            'proof_transfer' => $proofPath,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        return redirect()->route('deposit.index')->with('success', 'Deposit berhasil dikirim. Tunggu validasi admin.');
     }
 }

@@ -5,15 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
-// 🔽 import semua relasi agar editor paham
 use App\Models\Investment;
 use App\Models\Referral;
 use App\Models\Commission;
 use App\Models\Profit;
 use App\Models\Withdrawal;
 use App\Models\Notification;
+use App\Models\UserPreference;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $email
+ * @property string|null $phone
+ * @property string $password
+ * @property string $role
+ * @property int $is_consultant
+ * @property int $is_active
+ * @property Carbon|null $last_login_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -24,6 +38,9 @@ class User extends Authenticatable
         'phone',
         'password',
         'role',
+        'is_consultant',
+        'is_active',
+        'last_login_at',
     ];
 
     protected $hidden = [
@@ -33,6 +50,8 @@ class User extends Authenticatable
 
     protected $casts = [
         'password' => 'hashed',
+        'last_login_at' => 'datetime',
+        'is_active' => 'boolean', // 🔹 cast ke boolean
     ];
 
     /* ========================
@@ -72,5 +91,18 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class);
+    }
+
+    public function preference()
+    {
+        return $this->hasOne(UserPreference::class);
+    }
+
+    /* ========================
+     |  ACCESSOR STATUS
+     |======================== */
+    public function getStatusAttribute(): string
+    {
+        return $this->is_active ? 'Aktif' : 'Nonaktif';
     }
 }
