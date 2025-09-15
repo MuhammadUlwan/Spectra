@@ -5,85 +5,118 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use Carbon\Carbon;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     /**
-     * Show Login Page
+     * Tampilkan halaman login
      */
     public function showLogin()
     {
-        return Inertia::render('Auth/Login');
+        return inertia('Auth/Login');
     }
 
     /**
-     * Handle Login
+     * Proses login
      */
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->validate([
+            'email'    => ['required', 'email'],
+            'password' => ['required']
+        ]);
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-
             $user = Auth::user();
 
             if ($user->role === 'admin') {
-                return Inertia::location('/admin/dashboard');
+                return inertia()->location('/admin/dashboard');
             } elseif ($user->role === 'investor') {
-                return Inertia::location('/dashboard');
+                return inertia()->location('/dashboard');
             } else {
                 Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Role tidak dikenali.',
-                ]);
+                return back()->withErrors(['email' => 'Role tidak dikenali.']);
             }
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
+        throw ValidationException::withMessages([
+            'email' => ['Email atau password salah.'],
         ]);
     }
 
     /**
-     * Show Register Page
+     * Tampilkan halaman register
      */
     public function showRegister()
     {
-        return Inertia::render('Auth/Register');
+        return inertia('Auth/Register');
     }
 
     /**
-     * Handle Register
+     * Proses register
      */
+// Handle register
     public function register(Request $request)
     {
+        // Validasi input
         $validated = $request->validate([
-            'name'             => ['required', 'string', 'max:255'],
-            'username'         => ['required', 'string', 'max:255', 'unique:users,username'],
-            'email'            => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'wa'               => ['required', 'string', 'max:20'],
-            'konsultan_kode'   => ['nullable', 'string', 'max:50'],
-            'password'         => ['required', 'string', 'min:6'],
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'wa' => ['required', 'string', 'max:20'], // ini akan disimpan di 'phone'
+            'konsultan_kode' => ['nullable', 'string', 'max:50'],
+            'password' => ['required', 'string', 'min:6'],
         ]);
 
-        // Simpan user baru default role = investor
-        $user = User::create([
-            'name'          => $validated['name'],
-            'username'      => $validated['username'],
-            'email'         => $validated['email'],
-            'phone'         => $validated['wa'],
-            'password'      => bcrypt($validated['password']),
-            'role'          => 'investor',
-            'is_consultant' => 0,
-            'referral_code' => $validated['konsultan_kode'] ?? null,
-        ]);
+        // Cek kode konsultan jika diisi
+        $consultantId = null;
+        if (!empty($validated['konsultan_kode'])) {
+            $consultant = User::where('referral_code', $validated['konsultan_kode'])->first();
+            if (!$consultant) {
+                return response()->json([
+                    'errors' => ['konsultan_kode' => 'Kode konsultan tidak valid']
+                ], 422);
+            }
+            $consultantId = $consultant->id;
+        }
 
-        Auth::login($user);
+        // Generate referral code unik
+        do {
+            $referralCode = strtoupper(Str::random(6));
+        } while (User::where('referral_code', $referralCode)->exists());
 
-        return redirect()->route('dashboard');
+        try {
+            // Simpan user baru
+            $user = User::create([
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'phone' => $validated['wa'], // disimpan di kolom phone
+                'password' => bcrypt($validated['password']),
+                'role' => 'investor',
+                'is_consultant' => 0,
+                'referral_code' => $referralCode,
+                'konsultan_id' => $consultantId,
+                'is_active' => 1,
+            ]);
+
+            // Login otomatis
+            Auth::login($user);
+
+            return response()->json([
+                'success' => true,
+                'referral_code' => $user->referral_code,
+                'dashboard' => route('dashboard'),
+            ]);
+        } catch (\Exception $e) {
+            // Tangani error server, kirim ke frontend
+            return response()->json([
+                'errors' => ['server' => $e->getMessage()]
+            ], 500);
+        }
     }
 
     /**
@@ -92,10 +125,8 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
-        return Inertia::location(route('login'));
+        return inertia()->location(route('login'));
     }
 }

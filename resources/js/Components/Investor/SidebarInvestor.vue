@@ -14,7 +14,7 @@
       </button>
       <transition name="fade-slide">
         <h1 v-if="!collapsed" class="flex items-center text-white font-bold text-lg ml-3 whitespace-nowrap">
-          Spectra Panel
+          Spectra Investor
         </h1>
       </transition>
     </div>
@@ -24,7 +24,8 @@
       <ul>
         <li v-for="item in menuItems" :key="item.label" class="group mb-1">
           <a
-            :href="item.url"
+            :href="item.url || '#'"
+            @click.prevent="handleClick(item)"
             class="flex items-center px-3 py-3 rounded-lg transition-all duration-200 relative"
             :class="item.active
               ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold shadow-lg'
@@ -42,25 +43,61 @@
         </li>
       </ul>
     </nav>
+
+    <!-- Simple modal untuk coming soon -->
+    <div v-if="showComingSoon" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg p-6 text-center shadow-lg">
+        <p class="text-gray-800 font-semibold text-lg mb-4">Coming Soon!</p>
+        <button @click="showComingSoon = false" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+          Tutup
+        </button>
+      </div>
+    </div>
   </aside>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { usePage } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
   collapsed: { type: Boolean, default: false },
 })
 
+const { props: pageProps } = usePage()
+const urls = pageProps.urls || { academy: '', tutorial: '', chatbot: '' }
+
+const showComingSoon = ref(false)
+
 const menuItems = ref([
   { label: 'Dashboard', url: '/dashboard', icon: 'fas fa-home', active: false },
   { label: 'Deposit', url: '/deposit', icon: 'fas fa-plus', active: false },
-  { label: 'Tarik Dana', url: '/tarik-tunai', icon: 'fas fa-arrow-down', active: false },
   { label: 'Dompet', url: '/dompet', icon: 'fas fa-wallet', active: false },
-  { label: 'Kode Saya', url: '/referral', icon: 'fas fa-qrcode', active: false },
-  { label: 'Akademi', url: '/academy', icon: 'fas fa-graduation-cap', active: false },
-  { label: 'Chat', url: '/chat', icon: 'fas fa-comments', active: false },
+  { label: 'Karir', url: '/karir', icon: 'fas fa-user-friends', active: false },
+
+  { 
+    label: 'Akademi', 
+    url: urls.academy || null, 
+    icon: 'fas fa-graduation-cap', 
+    active: false, 
+    comingSoon: !urls.academy 
+  },
+  { 
+    label: 'Tutorial', 
+    url: urls.tutorial || null, 
+    icon: 'fas fa-video', 
+    active: false, 
+    comingSoon: !urls.tutorial 
+  },
+  { 
+    label: 'ChatBot', 
+    url: urls.chatbot || null, 
+    icon: 'fas fa-robot', 
+    active: false, 
+    comingSoon: !urls.chatbot 
+  },
+  { label: 'Settings', url: '/settings', icon: 'fas fa-cog', active: false }
 ])
 
 // Update active menu otomatis
@@ -70,6 +107,20 @@ const updateActiveState = () => {
 }
 updateActiveState()
 watch(() => url, () => updateActiveState())
+
+// Handle klik item
+const handleClick = (item) => {
+  if (item.comingSoon) {
+    showComingSoon.value = true
+  } else if (item.url) {
+    // Jika url internal (dimulai dengan "/"), pakai Inertia visit
+  if (item.url.startsWith('/')) {
+    router.visit(item.url) // pakai Inertia
+  } else {
+    window.open(item.url, '_blank') // eksternal
+  }
+  }
+}
 </script>
 
 <style scoped>

@@ -31,10 +31,7 @@
               : 'text-gray-300 hover:bg-gray-700'"
           >
             <i :class="item.icon + ' w-5 text-center text-lg'"></i>
-            <!-- Render label only jika sidebar terbuka -->
             <span v-if="!collapsed" class="ml-3 text-sm">{{ item.label }}</span>
-
-            <!-- Tooltip untuk collapsed -->
             <span
               v-if="collapsed"
               class="absolute left-16 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap"
@@ -52,12 +49,25 @@
 import { ref, watch } from 'vue'
 import { usePage } from '@inertiajs/vue3'
 
+// Props
 const props = defineProps({
   collapsed: { type: Boolean, default: false },
-  menu: { type: Array, required: true }
+  menu: { type: Array } // opsional, pakai default jika tidak ada
 })
 
-const menuItems = ref(props.menu)
+// Default menu
+const defaultMenu = [
+  { label: "Dashboard", url: "/admin/dashboard", icon: "fas fa-home" },
+  { label: "Investasi", url: "/admin/investments", icon: "fas fa-chart-line" },
+  { label: "Paket Deposit", url: "/admin/deposit-packages", icon: "fas fa-wallet" },
+  { label: "Pengguna", url: "/admin/users", icon: "fas fa-users" },
+  { label: "Withdraw", url: "/admin/withdraws", icon: "fas fa-money-bill-wave" },
+  { label: "Referrals", url: "/admin/referrals", icon: "fas fa-user-friends" },
+  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog" },
+]
+
+// Gunakan menu dari prop jika ada, jika tidak pakai default
+const menuItems = ref(props.menu ?? defaultMenu)
 
 // Update active menu otomatis
 const { url } = usePage()
@@ -67,7 +77,7 @@ const updateActiveState = () => {
   })
 }
 updateActiveState()
-watch(() => url, () => updateActiveState())
+watch(() => url, updateActiveState)
 </script>
 
 <style scoped>

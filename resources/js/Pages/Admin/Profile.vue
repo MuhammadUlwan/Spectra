@@ -142,18 +142,6 @@ const menuItems = [
   { name: 'security', label: 'Keamanan', icon: 'fas fa-shield-alt' }
 ]
 
-// Sidebar menu (konsisten dengan halaman lain)
-const sidebarMenu = [
-  { label: "Dashboard", url: "/admin/dashboard", icon: "fas fa-home" },
-  { label: "Investasi", url: "/admin/investments", icon: "fas fa-chart-line" },
-  { label: "Paket Deposit", url: "/admin/deposit-packages", icon: "fas fa-wallet" },
-  { label: "Pengguna", url: "/admin/users", icon: "fas fa-users" },
-  { label: "Withdraw", url: "/admin/withdraws", icon: "fas fa-money-bill-wave" },
-  { label: "Referrals", url: "/admin/referrals", icon: "fas fa-user-friends" }, // <-- baru
-  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog" },
-]
-
-
 const userInitials = computed(() => {
   if (!user.name) return 'A'
   return user.name

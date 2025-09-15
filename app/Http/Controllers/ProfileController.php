@@ -13,7 +13,7 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         // siapkan data softcode
-        return Inertia::render('Profile', [
+        return Inertia::render('Investor/Profile', [
             'auth' => [
                 'user' => $user,
             ],

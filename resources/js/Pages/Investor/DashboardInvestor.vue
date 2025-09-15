@@ -5,7 +5,7 @@
       <!-- Total Dompet -->
       <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-6 text-white shadow-xl">
         <h2 class="text-lg font-semibold opacity-90">TOTAL DOMPET</h2>
-        <p class="text-4xl font-bold mt-2">{{ currency }} {{ totalWallet.toLocaleString() }}</p>
+        <p class="text-4xl font-bold mt-2">{{ currency }} {{ walletBalance.toLocaleString() }}</p>
         <p class="mt-2 text-blue-100 flex items-center">
           <i class="fas fa-user mr-1"></i> {{ user.name }}
         </p>
@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
@@ -76,24 +76,31 @@ import InvestorLayout from '@/Layouts/InvestorLayout.vue';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import axios from 'axios'
 
 const { props } = usePage();
 const user = props.auth?.user || {};
+const walletBalance = ref(props.walletBalance ?? 0);
 const depositBalance = ref(props.depositBalance ?? 0);
 const totalProfit = ref(props.totalProfit ?? 0);
-const commissions = ref(props.commissions ?? []); // komisi: bonus, profit sharing, sponsor
 const announcements = ref(props.announcements ?? []);
 const profileUrl = props.profileUrl ?? '/profile';
 const logoutUrl = props.logoutUrl ?? '/logout';
+
+// Softcode currency dari preferensi user
 const currency = props.user_preferences?.currency ?? 'USDT';
 
-// Hitung total wallet: deposit + semua komisi yang metode wallet
-const totalWallet = computed(() => {
-  // Filter komisi yang masuk ke wallet
-  const walletCommissions = commissions.value.filter(c => c.withdraw_method === 'wallet' && c.status !== 'rejected');
-  const commissionTotal = walletCommissions.reduce((sum, c) => sum + parseFloat(c.amount), 0);
-  return depositBalance.value + commissionTotal + totalProfit.value;
-});
+async function fetchWalletBalance() {
+  try {
+    const res = await axios.get('/investor/wallet-balance')
+    walletBalance.value = res.data.walletBalance
+    depositBalance.value = res.data.depositBalance
+    totalProfit.value = res.data.totalProfit
+  } catch (error) {
+    console.error('Gagal fetch wallet balance:', error)
+  }
+}
+
 </script>
 
 <style scoped>
@@ -105,24 +112,35 @@ const totalWallet = computed(() => {
   top: 50%;
   transform: translateY(-50%);
   z-index: 20;
-  width: 2rem;
-  height: 2rem;
+  width: 2rem;  /* diperkecil */
+  height: 2rem; /* diperkecil */
   color: white;
   background: rgba(0,0,0,0.3);
   border-radius: 9999px;
 }
 
+/* Posisi tombol lebih dekat ke tepi slider */
 .swiper-button-prev { left: 0.5rem; }
 .swiper-button-next { right: 0.5rem; }
 
-.swiper-pagination { bottom: 0.5rem !important; }
+/* Pagination (titik-titik) di bawah slider */
+.swiper-pagination {
+  bottom: 0.5rem !important;
+}
 
+/* Animasi hover pada gambar slide */
 .swiper-slide img {
   transition: transform 0.5s ease-in-out;
 }
 
 /* Responsif tinggi slide */
-@media (max-width: 640px) { .swiper-slide { height: 20rem; } }
-@media (min-width: 641px) and (max-width: 1024px) { .swiper-slide { height: 24rem; } }
-@media (min-width: 1025px) { .swiper-slide { height: 32rem; } }
+@media (max-width: 640px) {
+  .swiper-slide { height: 20rem; } /* lebih tinggi untuk mobile */
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .swiper-slide { height: 24rem; } /* lebih tinggi untuk tablet */
+}
+@media (min-width: 1025px) {
+  .swiper-slide { height: 32rem; } /* lebih tinggi untuk desktop */
+}
 </style>
