@@ -63,10 +63,16 @@ class User extends Authenticatable
         return $this->hasMany(Investment::class);
     }
 
+    public function sponsor()
+    {
+        return $this->belongsTo(User::class, 'referred_by');
+    }
+
     public function referrals()
     {
-        return $this->hasMany(Referral::class, 'sponsor_id');
+        return $this->hasMany(User::class, 'referred_by');
     }
+
 
     public function commissions()
     {

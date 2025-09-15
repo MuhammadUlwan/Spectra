@@ -4,11 +4,11 @@
     :profileUrl="profileUrl"
     :logoutUrl="logoutUrl"
     :sidebarMenu="sidebarMenu"
-    pageTitle="Withdraws"
   >
     <!-- Filter -->
     <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-      <h1 class="text-2xl font-bold text-gray-800">Daftar Withdraw</h1>
+      <h1 class="text-2xl font-extrabold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+      Daftar Withdraw</h1>
       <div class="flex gap-2 flex-wrap">
         <select v-model="typeFilter" class="border px-4 py-2 rounded">
           <option value="">Semua Tipe</option>
@@ -209,12 +209,15 @@ function exportData() {
 }
 
 const sidebarMenu = [
-  { label:"Dashboard", url:"/admin/dashboard", icon:"fas fa-home" },
-  { label:"Investasi", url:"/admin/investments", icon:"fas fa-chart-line" },
-  { label:"Pengguna", url:"/admin/users", icon:"fas fa-users" },
-  { label:"Withdraw", url:"/admin/withdraws", icon:"fas fa-money-bill-wave", active:true },
-  { label:"Pengaturan", url:"/admin/settings", icon:"fas fa-cog" },
+  { label: "Dashboard", url: "/admin/dashboard", icon: "fas fa-home" },
+  { label: "Investasi", url: "/admin/investments", icon: "fas fa-chart-line" },
+  { label: "Paket Deposit", url: "/admin/deposit-packages", icon: "fas fa-wallet" },
+  { label: "Pengguna", url: "/admin/users", icon: "fas fa-users" },
+  { label: "Withdraw", url: "/admin/withdraws", icon: "fas fa-money-bill-wave" },
+  { label: "Referrals", url: "/admin/referrals", icon: "fas fa-user-friends" }, // <-- baru
+  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog" },
 ]
+
 </script>
 
 <style scoped>

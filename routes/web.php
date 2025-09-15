@@ -9,7 +9,7 @@ use App\Http\Controllers\DepositController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TarikTunaiController;
-
+use App\Http\Controllers\Admin\InvestmentPackagesController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminInvestmentController;
 use App\Http\Controllers\Admin\SettingController;
@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AdminWithdrawController;
 use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\AdminReferralController;
 
 use App\Models\Announcement;
 
@@ -141,6 +142,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/announcements', [AnnouncementController::class, 'store'])->name('admin.announcements.store');
         Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
         Route::post('/announcements/{id}/toggle', [AnnouncementController::class, 'toggle'])->name('admin.announcements.toggle');
+        
+         // Admin Investment Packages
+        Route::get('/deposit-packages', [InvestmentPackagesController::class, 'index'])->name('admin.deposit-packages.index');
+        Route::post('/deposit-packages', [InvestmentPackagesController::class, 'store'])->name('admin.deposit-packages.store');
+        Route::post('/deposit-packages/{id}', [InvestmentPackagesController::class, 'update'])
+            ->name('admin.deposit-packages.update');
+        Route::post('/deposit-packages/{id}/delete', [InvestmentPackagesController::class, 'destroy'])
+            ->name('admin.deposit-packages.destroy');
+
+         // Admin Referrals
+        Route::get('/referrals', [AdminReferralController::class, 'index'])
+            ->name('admin.referrals.index');
+
     });
 
     // ========================

@@ -33,6 +33,17 @@ class SettingController extends Controller
             'settings'   => [
                 'url_academy'  => $settings['url_academy'] ?? '',
                 'url_tutorial' => $settings['url_tutorial'] ?? '',
+                'chatbot_url'  => $settings['chatbot_url'] ?? '',
+                // Profit & fee settings
+                'profit_percent'          => $settings['profit_percent'] ?? 7.5,
+                'sponsor_fee_direct'      => $settings['sponsor_fee_direct'] ?? 7.5,
+                'sponsor_fee_indirect'    => $settings['sponsor_fee_indirect'] ?? 2.5,
+                'profit_sharing_level1'   => $settings['profit_sharing_level1'] ?? 1.25,
+                'profit_sharing_level2'   => $settings['profit_sharing_level2'] ?? 0.75,
+                'profit_sharing_level3'   => $settings['profit_sharing_level3'] ?? 0.5,
+                'bonus_target_omset'      => $settings['bonus_target_omset'] ?? 10000,
+                'bonus_profit_extra'      => $settings['bonus_profit_extra'] ?? 1.25,
+                'profit_percent_15days'   => $settings['profit_percent_15days'] ?? 3.5,
             ],
             'logoutUrl'  => route('logout'),
             'profileUrl'    => route('admin.profile'),
@@ -49,7 +60,18 @@ class SettingController extends Controller
             'tutorial_url' => 'nullable|url',
             'language'     => 'required|string|in:id,en',
             'theme'        => 'required|string|in:light,dark',
+        // validasi profit settings
+            'profit_percent'            => 'nullable|numeric|min:0',
+            'sponsor_fee_direct'        => 'nullable|numeric|min:0',
+            'sponsor_fee_indirect'      => 'nullable|numeric|min:0',
+            'profit_sharing_level1'     => 'nullable|numeric|min:0',
+            'profit_sharing_level2'     => 'nullable|numeric|min:0',
+            'profit_sharing_level3'     => 'nullable|numeric|min:0',
+            'bonus_target_omset'        => 'nullable|numeric|min:0',
+            'bonus_profit_extra'        => 'nullable|numeric|min:0',
+            'profit_percent_15days'     => 'nullable|numeric|min:0',
         ]);
+
 
         $user = Auth::user();
 
@@ -66,27 +88,40 @@ class SettingController extends Controller
         $preference->save();
 
         // ========================
-        // Update global Settings
+        // Update URL Settings
         // ========================
-        if ($request->filled('academy_url')) {
-            Setting::updateOrCreate(
-                ['key_name' => 'url_academy'],
-                ['value' => $request->academy_url]
-            );
+        $urlKeys = ['academy_url', 'tutorial_url', 'chatbot_url'];
+        foreach ($urlKeys as $key) {
+            if ($request->filled($key)) {
+                Setting::updateOrCreate(
+                    ['key_name' => $key],
+                    ['value' => $request->$key]
+                );
+            }
         }
 
-        if ($request->filled('tutorial_url')) {
-            Setting::updateOrCreate(
-                ['key_name' => 'url_tutorial'],
-                ['value' => $request->tutorial_url]
-            );
-        }
+        // ========================
+        // Update Profit & Fee Settings
+        // ========================
+        $profitKeys = [
+            'profit_percent',
+            'sponsor_fee_direct',
+            'sponsor_fee_indirect',
+            'profit_sharing_level1',
+            'profit_sharing_level2',
+            'profit_sharing_level3',
+            'bonus_target_omset',
+            'bonus_profit_extra',
+            'profit_percent_15days',
+        ];
 
-        if ($request->filled('chatbot_url')) {
-            Setting::updateOrCreate(
-                ['key_name' => 'chatbot_url'],
-                ['value' => $request->chatbot_url]
-            );
+        foreach ($profitKeys as $key) {
+            if ($request->filled($key)) {
+                Setting::updateOrCreate(
+                    ['key_name' => $key],
+                    ['value' => $request->$key]
+                );
+            }
         }
 
         return redirect()->route('admin.settings')->with('success', 'Pengaturan berhasil diperbarui.');

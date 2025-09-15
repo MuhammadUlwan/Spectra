@@ -1,27 +1,50 @@
 <template>
-  <div class="flex min-h-screen bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
-    <!-- Sidebar -->
-    <SidebarAdmin :menu="sidebarMenu" v-model:collapsed="sidebarCollapsed" />
-
-    <!-- Main content -->
+  <div class="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <!-- Sidebar Mobile Overlay -->
     <div
-      class="flex-1 flex flex-col transition-all duration-300"
-      :class="sidebarCollapsed ? 'ml-16' : 'ml-64'"
-    >
+      v-if="!sidebarCollapsed"
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+      @click="sidebarCollapsed = true"
+    ></div>
+   
+    <!-- Sidebar -->
+    <SidebarAdmin
+      :menu="sidebarMenu"
+      :collapsed="sidebarCollapsed"
+      @update:collapsed="sidebarCollapsed = $event"
+      class="fixed z-50 h-full transition-transform transform md:relative md:translate-x-0"
+      :class="sidebarCollapsed ? '-translate-x-full md:translate-x-0' : 'translate-x-0'"
+    />
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 transition-all duration-300">
+      
       <!-- Header -->
       <AdminHeader
         :user="user"
         :profileUrl="profileUrl"
         :logoutUrl="logoutUrl"
-        :pageTitle="pageTitle"
         @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed"
       />
 
-      <!-- Page content -->
-      <main class="flex-1 overflow-auto p-6 transition-all duration-300">
-        <slot />
+      <!-- Page Content -->
+      <main class="flex-1 overflow-x-hidden p-4 md:p-6">
+        <div class="mb-4 md:mb-6">
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white">{{ pageTitle }}</h1>
+        </div>
+
+        <!-- Page Slot -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6">
+          <slot />
+        </div>
       </main>
+
+      <!-- Footer (optional) -->
+      <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 text-center text-sm text-gray-600 dark:text-gray-400">
+        © {{ new Date().getFullYear() }} Spectra Admin. All rights reserved.
+      </footer>
     </div>
+
   </div>
 </template>
 
@@ -38,7 +61,6 @@ const props = defineProps({
   pageTitle: { type: String, default: '' },
 })
 
-// Persist sidebar collapsed state using localStorage
 const sidebarCollapsed = ref(false)
 
 onMounted(() => {
@@ -52,8 +74,12 @@ watch(sidebarCollapsed, (val) => {
 </script>
 
 <style scoped>
-/* Scrollbar untuk main content */
+
 main::-webkit-scrollbar { width: 6px; }
 main::-webkit-scrollbar-thumb { background-color: rgba(100,100,100,0.3); border-radius: 3px; }
 main::-webkit-scrollbar-thumb:hover { background-color: rgba(100,100,100,0.5); }
+
+aside {
+  transition: transform 0.3s ease;
+}
 </style>

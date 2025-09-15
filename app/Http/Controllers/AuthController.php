@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -61,13 +60,22 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name'             => ['required', 'string', 'max:255'],
-            'username'         => ['required', 'string', 'max:255', 'unique:users,username'],
-            'email'            => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'wa'               => ['required', 'string', 'max:20'],
-            'konsultan_kode'   => ['nullable', 'string', 'max:50'],
-            'password'         => ['required', 'string', 'min:6'],
+            'name'           => ['required', 'string', 'max:255'],
+            'username'       => ['required', 'string', 'max:255', 'unique:users,username'],
+            'email'          => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'wa'             => ['required', 'string', 'max:20'],
+            'konsultan_kode' => ['nullable', 'string', 'max:50'],
+            'password'       => ['required', 'string', 'min:6'],
         ]);
+
+        // Cari sponsor dari query ?ref=xxxx
+        $sponsor = null;
+        if ($request->has('ref')) {
+            $sponsor = User::where('referral_code', $request->ref)->first();
+        }
+
+        // Generate referral code unik
+        $referralCode = strtoupper(substr(uniqid(), -8));
 
         // Simpan user baru default role = investor
         $user = User::create([
@@ -78,7 +86,8 @@ class AuthController extends Controller
             'password'      => bcrypt($validated['password']),
             'role'          => 'investor',
             'is_consultant' => 0,
-            'referral_code' => $validated['konsultan_kode'] ?? null,
+            'referral_code' => $referralCode,
+            'sponsor_id'    => $sponsor?->id, // null jika tidak ada referral
         ]);
 
         Auth::login($user);

@@ -21,17 +21,9 @@ class AdminController extends Controller
         // Ambil currency dari setting (default USD)
         $currencySetting = Setting::where('key_name', 'currency')->first();
         $currency = $currencySetting->value ?? 'USDT';
-
-        // Investor Aktif
         $investorAktif = Investment::where('status', 'active')->distinct('user_id')->count('user_id');
-
-        // Total Investasi
         $totalInvestasi = Investment::where('status', 'active')->sum('amount');
-
-        // Total Profit
         $totalProfit = Profit::sum('profit_amount');
-
-        // Withdraw Pending
         $withdrawPending = Withdrawal::where('status', 'pending')->count();
 
         $stats = [

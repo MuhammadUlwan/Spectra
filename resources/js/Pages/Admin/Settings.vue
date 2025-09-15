@@ -4,17 +4,20 @@
     :profileUrl="profileUrl"
     :logoutUrl="logoutUrl"
     :sidebarMenu="sidebarMenu"
-    pageTitle="$t('settingsTitle')"
   >
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header section -->
       <div class="mb-8">
-        <h1 :class="['text-3xl font-bold', form.theme === 'light' ? 'text-gray-900' : 'text-white']">
-          {{ $t('settingsTitle') }}
-        </h1>
-        <p :class="['mt-2', form.theme === 'light' ? 'text-gray-700' : 'text-gray-400']">
-          {{ $t('settingsDescription') }}
-        </p>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              {{ $t('settingsTitle') }}
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-2 text-sm md:text-base">
+              {{ $t('settingsSubtitle') }}
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- Settings card -->
@@ -80,6 +83,25 @@
             </div>
           </div>
         </div>
+
+      <!-- Profit & Fee Settings -->
+      <div class="p-6">
+        <h2 :class="['text-xl font-semibold mb-4 flex items-center', form.theme === 'light' ? 'text-gray-900' : 'text-white']">
+          <i class="fas fa-percentage mr-2 text-yellow-500"></i>
+          {{ $t('profitSettings') }}
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div v-for="(value, key) in profitSettings" :key="key">
+            <label :class="['block text-sm font-medium mb-1', form.theme === 'light' ? 'text-gray-700' : 'text-gray-300']">
+              {{ $t(key) }}
+            </label>
+            <div class="relative">
+              <input type="number" v-model.number="profitSettings[key]" step="0.01" min="0" :class="inputClass" />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <!-- URL Settings -->
         <div class="p-6">
@@ -161,6 +183,19 @@ const form = ref({
   theme: userPref?.theme || 'light',
 })
 
+// Object profitSettings diambil dari props Inertia (database)
+const profitSettings = ref({
+  profit_percent: settings.profit_percent || 7.5,
+  sponsor_fee_direct: settings.sponsor_fee_direct || 7.5,
+  sponsor_fee_indirect: settings.sponsor_fee_indirect || 2.5,
+  profit_sharing_level1: settings.profit_sharing_level1 || 1.25,
+  profit_sharing_level2: settings.profit_sharing_level2 || 0.75,
+  profit_sharing_level3: settings.profit_sharing_level3 || 0.5,
+  bonus_target_omset: settings.bonus_target_omset || 10000,
+  bonus_profit_extra: settings.bonus_profit_extra || 1.25,
+  profit_percent_15days: settings.profit_percent_15days || 3.5,
+})
+
 // Watch language untuk i18n
 watch(() => form.value.language, (newLang) => locale.value = newLang)
 
@@ -174,8 +209,12 @@ const bankNumberExample = computed(() => form.value.language === 'id' ? 'Contoh:
 
 // Submit settings
 function submitSettings() {
-  router.post('/admin/settings/update', form.value, {
-    onSuccess: () => alert(t('settingsSaved'))
+  router.post('/admin/settings/update', {
+    ...form.value,
+    ...profitSettings.value
+  }, {
+    onSuccess: () => alert(t('saveSuccess')),
+    onError: () => alert(t('saveError'))
   })
 }
 
@@ -183,10 +222,13 @@ function submitSettings() {
 const sidebarMenu = [
   { label: "Dashboard", url: "/admin/dashboard", icon: "fas fa-home" },
   { label: "Investasi", url: "/admin/investments", icon: "fas fa-chart-line" },
+  { label: "Paket Deposit", url: "/admin/deposit-packages", icon: "fas fa-wallet" },
   { label: "Pengguna", url: "/admin/users", icon: "fas fa-users" },
   { label: "Withdraw", url: "/admin/withdraws", icon: "fas fa-money-bill-wave" },
-  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog", active: true },
+  { label: "Referrals", url: "/admin/referrals", icon: "fas fa-user-friends" }, // <-- baru
+  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog" },
 ]
+
 </script>
 
 <style scoped>

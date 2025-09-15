@@ -14,6 +14,7 @@ class InvestmentPackage extends Model
         'amount',
         'duration_months',
         'profit_percent',
+        'currency',
     ];
 
     public function investments()
