@@ -41,29 +41,37 @@ class AdminInvestmentController extends Controller
      * Update status investasi (approve/reject)
      */
     // AdminInvestmentController.php
-        public function updateStatus(Request $request, $id)
-        {
-            $investment = Investment::findOrFail($id);
-            $status = $request->input('status');
+    public function updateStatus(Request $request, $id)
+    {
+        $investment = Investment::findOrFail($id);
+        $status = $request->input('status');
 
-            if (!in_array($status, ['active', 'pending', 'completed', 'cancelled'])) {
-                return back()->with('error', 'Status tidak valid');
-            }
-
-            $investment->status = $status;
-
-            if (in_array($status, ['active', 'cancelled'])) {
-                $investment->validated_by = Auth::id();
-                $investment->validated_at = now();
-            } else {
-                $investment->validated_by = null;
-                $investment->validated_at = null;
-            }
-
-            $investment->save();
-
-            // Redirect ke index dengan flash message
-            return redirect()->route('admin.investments.index')
-                 ->with('success', 'Status berhasil diperbarui');
+        if (!in_array($status, ['active', 'pending', 'completed', 'cancelled'])) {
+            return back()->with('error', 'Status tidak valid');
         }
+
+        $investment->status = $status;
+
+        if ($status === 'active') {
+            $investment->validated_by = Auth::id();
+            $investment->validated_at = now();
+            $investment->start_date = now()->toDateString();
+            $investment->end_date = now()->addMonths($investment->package->duration_months)->toDateString();
+        } elseif ($status === 'cancelled') {
+            $investment->validated_by = Auth::id();
+            $investment->validated_at = now();
+            $investment->start_date = null;
+            $investment->end_date = null;
+        } else {
+            $investment->validated_by = null;
+            $investment->validated_at = null;
+            $investment->start_date = null;
+            $investment->end_date = null;
+        }
+
+        $investment->save();
+
+        return redirect()->route('admin.investments.index')
+            ->with('success', 'Status berhasil diperbarui');
+    }
 }

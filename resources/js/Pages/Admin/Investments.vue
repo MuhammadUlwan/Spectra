@@ -39,7 +39,9 @@
             <td class="px-4 py-2 border">
               <span :class="statusClass(inv.status)">{{ statusLabel(inv.status) }}</span>
             </td>
-            <td class="px-4 py-2 border">{{ inv.start_date ?? '-' }} s/d {{ inv.end_date ?? '-' }}</td>
+            <td class="px-4 py-2 border">
+              {{ inv.start_date ? inv.start_date : '-' }} s/d {{ inv.end_date ? inv.end_date : '-' }}
+            </td>
             <td class="px-4 py-2 border text-center">
               <button
                 @click="openDetailModal(inv)"
@@ -74,7 +76,22 @@
         <div class="mt-4">
           <p class="font-semibold">Bukti Transfer:</p>
           <div v-if="selectedInvestment.proof_transfer">
-            <img :src="`/storage/uploads/${selectedInvestment.proof_transfer}`" alt="Bukti Transfer" class="max-w-full rounded" />
+            <a
+              :href="`/storage/${selectedInvestment.proof_transfer}`"
+              target="_blank"
+              class="text-blue-600 hover:underline"
+            >
+              Lihat Bukti Transfer
+            </a>
+            <img
+              v-if="previewBukti"
+              :src="`/storage/${selectedInvestment.proof_transfer}`"
+              alt="Bukti Transfer"
+              class="max-w-full rounded mt-2"
+            />
+            <button @click="previewBukti = !previewBukti" class="text-sm mt-1 text-gray-600 hover:text-gray-800">
+              {{ previewBukti ? 'Sembunyikan' : 'Preview' }}
+            </button>
           </div>
           <p v-else class="text-gray-500">Belum ada bukti transfer</p>
         </div>
@@ -115,6 +132,7 @@ const logoutUrl = props.logoutUrl || "/logout"
 const currencySymbol = props.currencySymbol ?? 'USDT'
 const investments = ref(props.investments ?? [])
 const statusFilter = ref('')
+const previewBukti = ref(false)
 
 // Filtered list
 const filteredInvestments = computed(() => {
@@ -151,9 +169,36 @@ function statusClass(status) {
 // Update status
 function updateStatus(id, newStatus) {
   router.post(`/admin/investments/${id}/update-status`, { status: newStatus }, {
-    onSuccess: () => {
+    onSuccess: (page) => {
+      const idx = investments.value.findIndex(inv => inv.id === id)
+      if (idx !== -1) {
+        investments.value[idx].status = newStatus
+        investments.value[idx].validator = {
+          id: page.props.auth.user.id,
+          name: page.props.auth.user.name
+        }
+        investments.value[idx].validated_at = new Date().toISOString().slice(0,19).replace('T', ' ')
+
+        if (newStatus === 'active') {
+          const pkg = investments.value[idx].package
+          const start = new Date()
+          const end = new Date()
+          end.setMonth(end.getMonth() + (pkg?.duration_months ?? 1))
+          investments.value[idx].start_date = start.toISOString().slice(0,10)
+          investments.value[idx].end_date = end.toISOString().slice(0,10)
+        } else {
+          investments.value[idx].start_date = null
+          investments.value[idx].end_date = null
+        }
+      }
       closeModal()
-      router.visit('/admin/investments', { preserveState: false })
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: 'Status investasi diperbarui',
+        timer: 2000,
+        showConfirmButton: true,
+      })
     },
     onError: () => alert('Gagal memperbarui status')
   })
