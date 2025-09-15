@@ -21,80 +21,52 @@
         <p class="text-gray-600 text-sm md:text-base mb-6 text-center">Isi formulir di bawah untuk membuat akun baru</p>
 
         <form @submit.prevent="submit" class="space-y-4">
-          <div>
-            <label class="block text-gray-700 text-sm font-medium mb-1">Nama Lengkap</label>
-            <input type="text" v-model="form.name" placeholder="Nama Lengkap"
+          <div v-for="field in fields" :key="field.key">
+            <label class="block text-gray-700 text-sm font-medium mb-1">{{ field.label }}</label>
+            <input
+              :type="field.type"
+              v-model="form[field.key]"
+              :placeholder="field.placeholder"
               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              :class="{'border-red-500': errors.name}" @input="clearError('name')"
+              :class="{'border-red-500': errors[field.key]}"
+              @input="clearError(field.key)"
             />
-            <p v-if="errors.name" class="text-red-500 text-xs mt-1">{{ errors.name }}</p>
-          </div>
-
-          <div>
-            <label class="block text-gray-700 text-sm font-medium mb-1">kode Konsultan</label>
-            <input type="text" v-model="form.konsultan_kode" placeholder="kode Konsultan"
-              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              :class="{'border-red-500': errors.konsultan_kode}" @input="clearError('konsultan_kode')"
-            />
-            <p v-if="errors.konsultan_kode" class="text-red-500 text-xs mt-1">{{ errors.konsultan_kode }}</p>
-          </div>
-
-          <div>
-            <label class="block text-gray-700 text-sm font-medium mb-1">Username</label>
-            <input type="text" v-model="form.username" placeholder="Username"
-              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              :class="{'border-red-500': errors.username}" @input="clearError('username')"
-            />
-            <p v-if="errors.username" class="text-red-500 text-xs mt-1">{{ errors.username }}</p>
-          </div>
-
-          <div>
-            <label class="block text-gray-700 text-sm font-medium mb-1">Email aktif</label>
-            <input type="email" v-model="form.email" placeholder="Masukan Email Kamu"
-              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              :class="{'border-red-500': errors.email}" @input="clearError('email')"
-            />
-            <p v-if="errors.email" class="text-red-500 text-xs mt-1">{{ errors.email }}</p>
-          </div>
-
-          <div>
-            <label class="block text-gray-700 text-sm font-medium mb-1">No WA aktif</label>
-            <input type="text" v-model="form.wa" placeholder="08xxxxxxx"
-              class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              :class="{'border-red-500': errors.wa}" @input="clearError('wa')"
-            />
-            <p v-if="errors.wa" class="text-red-500 text-xs mt-1">{{ errors.wa }}</p>
+            <p v-if="errors[field.key]" class="text-red-500 text-xs mt-1">{{ errors[field.key] }}</p>
           </div>
 
           <!-- Password Show/Hide -->
           <div class="relative">
             <label class="block text-gray-700 text-sm font-medium mb-1">Password</label>
-            <input 
-              :type="showPassword ? 'text' : 'password'" 
-              v-model="form.password" placeholder="••••••••"
+            <input
+              :type="showPassword ? 'text' : 'password'"
+              v-model="form.password"
+              placeholder="••••••••"
               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              :class="{'border-red-500': errors.password}" @input="clearError('password')"
+              :class="{'border-red-500': errors.password}"
+              @input="clearError('password')"
             />
-            <button type="button" @click="togglePassword" 
-              class="absolute right-3 top-3.5 h-full flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              <!-- Mata terbuka -->
-              <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            <button type="button" @click="togglePassword"
+              class="absolute right-3 top-3.5 h-full flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
+              <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
               </svg>
-              <!-- Mata tertutup -->
-              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.053 10.053 0 012.507-4.257m3.37-2.35a9.978 9.978 0 014.666-1.393M15 12a3 3 0 11-6 0 3 3 0 016 0zM3 3l18 18" />
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.053 10.053 0 012.507-4.257m3.37-2.35a9.978 9.978 0 014.666-1.393M15 12a3 3 0 11-6 0 3 3 0 016 0zM3 3l18 18"/>
               </svg>
             </button>
             <p v-if="errors.password" class="text-red-500 text-xs mt-1">{{ errors.password }}</p>
           </div>
 
+          <!-- Tombol -->
           <button type="submit"
-            :disabled="isLoading"
-            class="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 flex items-center justify-center"
-          >
+                  :disabled="isLoading"
+                  class="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 flex items-center justify-center">
             <span v-if="!isLoading">Register</span>
             <span v-else>Memproses...</span>
           </button>
@@ -106,43 +78,44 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { Link } from '@inertiajs/vue3'
+import { Link, useForm } from '@inertiajs/vue3'
 import logo from '../../assets/logo.png'
 
-const form = reactive({
+const form = useForm({
   name: '',
-  konsultan_username: '',
   username: '',
   email: '',
   wa: '',
+  konsultan_kode: '',
   password: ''
 })
 
 const errors = reactive({})
 const isLoading = ref(false)
-
-// Show/hide password
 const showPassword = ref(false)
 const togglePassword = () => showPassword.value = !showPassword.value
-
 const clearError = (field) => { if(errors[field]) delete errors[field] }
 
+const fields = [
+  { key: 'name', label: 'Nama Lengkap', type: 'text', placeholder: 'Nama Lengkap' },
+  { key: 'konsultan_kode', label: 'Kode Konsultan', type: 'text', placeholder: 'Kode Konsultan' },
+  { key: 'username', label: 'Username', type: 'text', placeholder: 'Username' },
+  { key: 'email', label: 'Email aktif', type: 'email', placeholder: 'Masukan Email Kamu' },
+  { key: 'wa', label: 'No WA aktif', type: 'text', placeholder: '08xxxxxxx' }
+]
+
 const submit = () => {
-  Object.keys(errors).forEach(k => delete errors[k])
-
-  if(!form.name) errors.name = 'Nama harus diisi'
-  if(!form.konsultan_username) errors.konsultan_username = 'Username Konsultan harus diisi'
-  if(!form.username) errors.username = 'Username harus diisi'
-  if(!form.email) errors.email = 'Email harus diisi'
-  if(!form.wa) errors.wa = 'No WA harus diisi'
-  if(!form.password) errors.password = 'Password harus diisi'
-
-  if(Object.keys(errors).length) return
-
   isLoading.value = true
-  setTimeout(() => {
-    isLoading.value = false
-    alert('Akun berhasil dibuat! (Demo)')
-  }, 1200)
+  form.post('/register', {
+    onSuccess: () => {
+      isLoading.value = false
+      form.reset()
+      // redirect akan otomatis via AuthController
+    },
+    onError: (errs) => {
+      isLoading.value = false
+      Object.assign(errors, errs)
+    }
+  })
 }
 </script>
