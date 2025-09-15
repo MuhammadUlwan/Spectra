@@ -9,16 +9,19 @@ use App\Http\Controllers\DepositController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TarikTunaiController;
+use App\Http\Controllers\SettingController;
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminInvestmentController;
-use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AdminWithdrawController;
 use App\Http\Controllers\Admin\AdminProfileController;
 
 use App\Models\Announcement;
+use App\Models\Referral;
+use App\Models\Setting;
 
 // ========================
 // Default Route
@@ -59,7 +62,7 @@ Route::middleware('auth')->group(function () {
         $depositBalance = method_exists($user, 'deposits') ? $user->deposits()->sum('amount') : 0;
         $totalProfit    = method_exists($user, 'profits') ? $user->profits()->sum('profit_amount') : 0;
 
-        $announcements = \App\Models\Announcement::where('active', true)
+        $announcements = Announcement::where('active', true)
             ->orderBy('order', 'asc')
             ->get()
             ->map(fn($a) => [
@@ -68,7 +71,6 @@ Route::middleware('auth')->group(function () {
                 'image_url' => $a->image_url,
             ]);
 
-        // 🔥 Pisahkan admin vs investor
         if ($user->is_admin) {
             return Inertia::render('Admin/Dashboard', [
                 'auth'          => ['user' => $user],
@@ -83,12 +85,21 @@ Route::middleware('auth')->group(function () {
             ]);
         }
 
+        $settings = Setting::whereIn('key_name', ['url_chatbot','url_tutorial','url_academy'])
+                    ->pluck('value','key_name')
+                    ->toArray();
+
         return Inertia::render('Investor/DashboardInvestor', [
             'auth'           => ['user' => $user],
             'walletBalance'  => $walletBalance,
             'depositBalance' => $depositBalance,
             'totalProfit'    => $totalProfit,
             'announcements'  => $announcements,
+            'urls'           => [
+                'academy'  => $settings['url_academy'] ?? '',
+                'tutorial' => $settings['url_tutorial'] ?? '',
+                'chatbot'  => $settings['url_chatbot'] ?? '',
+            ],
             'logoutUrl'      => route('logout'),
             'profileUrl'     => route('profile'),
         ]);
@@ -101,13 +112,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/investments', [InvestmentController::class, 'store'])->name('investments.store');
 
     // ========================
+    // Investor Settings
+    // ========================
+    Route::prefix('settings')->group(function () {
+        Route::get('/', [SettingController::class, 'index'])->name('investor.settings');
+        Route::post('/update', [SettingController::class, 'update'])->name('investor.settings.update');
+    });
+
+    // ========================
     // Admin Routes
     // ========================
     Route::middleware(['isAdmin'])->prefix('admin')->group(function () {
 
-        // ========================
         // Admin Profile
-        // ========================
         Route::get('/profile', [AdminProfileController::class, 'index'])->name('admin.profile');
         Route::post('/profile/notifications', [AdminProfileController::class, 'updateNotifications'])->name('admin.profile.notifications');
         Route::post('/profile/preferences', [AdminProfileController::class, 'updatePreferences'])->name('admin.profile.preferences');
@@ -128,8 +145,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/users/{id}/generate-wallet', [AdminUserController::class, 'generateWallet'])->name('admin.users.generateWallet');
 
         // Admin Settings
-        Route::get('/settings', [SettingController::class, 'index'])->name('admin.settings');
-        Route::post('/settings/update', [SettingController::class, 'update'])->name('admin.settings.update');
+        Route::prefix('settings')->group(function () {
+            Route::get('/', [AdminSettingController::class, 'index'])->name('admin.settings');
+            Route::post('/update', [AdminSettingController::class, 'update'])->name('admin.settings.update');
+        });
 
         // Admin Withdraws
         Route::get('/withdraws', [AdminWithdrawController::class, 'index'])->name('withdraws.index');
@@ -156,17 +175,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/tarik-tunai', [TarikTunaiController::class, 'index'])->name('tarik.index');
     Route::post('/tarik-tunai', [TarikTunaiController::class, 'store'])->name('tarik.store');
 
-// ========================
-// Deposit Routes (Investor)
-// ========================
-Route::middleware(['auth'])->group(function () {
-    // Tampilkan halaman deposit
+    // ========================
+    // Deposit Routes (Investor)
+    // ========================
     Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
-
-    // Submit deposit (store)
     Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
+    Route::get('/investor/wallet-balance', [\App\Http\Controllers\DashboardController::class, 'getWalletBalance']);
+    // ========================
+    // Dompet (Wallet)
+    // ========================
+    Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
+
+// Endpoint API untuk validasi kode konsultan/referral
+Route::get('/check-referral/{code}', function($code) {
+    $exists = \App\Models\User::where('referral_code', $code)->exists();
+    return response()->json(['valid' => $exists]);
 });
 
-// Dompet (Wallet)
-Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
 });
