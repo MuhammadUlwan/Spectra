@@ -1,45 +1,69 @@
 <template>
   <InvestorLayout :user="user" :profileUrl="profileUrl" :logoutUrl="logoutUrl">
 
-    <!-- Saldo -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <div class="bg-white rounded-xl p-5 shadow-md flex justify-between items-center border border-gray-200">
-        <div class="flex items-center gap-3">
-          <div class="bg-green-100 p-3 rounded-lg">
-            <i class="fas fa-wallet text-green-600"></i>
-          </div>
-          <span class="text-gray-600 font-medium">Saldo Saat Ini</span>
+    <!-- Saldo Card -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+      <div class="bg-white rounded-xl p-5 shadow-md border border-gray-200">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 font-medium">Saldo Deposit</span>
+          <i class="fas fa-coins text-blue-600"></i>
         </div>
-        <span class="text-xl md:text-2xl font-semibold text-gray-800">
-          USDT {{ formatCurrency(user.wallet || 0) }}
-        </span>
+        <p class="text-xl font-bold text-gray-800 mt-2">
+          USDT {{ formatCurrency(depositBalance) }}
+        </p>
+      </div>
+
+      <div class="bg-white rounded-xl p-5 shadow-md border border-gray-200">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 font-medium">Total Profit</span>
+          <i class="fas fa-chart-line text-green-600"></i>
+        </div>
+        <p class="text-xl font-bold text-gray-800 mt-2">
+          USDT {{ formatCurrency(totalProfit) }}
+        </p>
+      </div>
+
+      <div class="bg-white rounded-xl p-5 shadow-md border border-gray-200">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 font-medium">Extra Bonus</span>
+          <i class="fas fa-gift text-yellow-600"></i>
+        </div>
+        <p class="text-xl font-bold text-gray-800 mt-2">
+          USDT {{ formatCurrency(extraBonus) }}
+        </p>
+      </div>
+
+      <div class="bg-white rounded-xl p-5 shadow-md border border-gray-200">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600 font-medium">Sponsor Fee</span>
+          <i class="fas fa-user-friends text-purple-600"></i>
+        </div>
+        <p class="text-xl font-bold text-gray-800 mt-2">
+          USDT {{ formatCurrency(sponsorFee) }}
+        </p>
       </div>
     </div>
 
-    <!-- Riwayat Withdrawal -->
+    <!-- Riwayat Dompet -->
     <div class="bg-white rounded-xl p-5 shadow-md border border-gray-200">
       <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-2">
-        <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-0">Riwayat Withdrawal</h2>
+        <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-2 md:mb-0">Riwayat Dompet</h2>
 
         <div class="flex gap-2 w-full md:w-auto">
-          <!-- Dropdown Filter -->
-          <select v-model="activeType"
-                  class="border px-4 py-2 rounded-lg flex-1 md:flex-none">
+          <select v-model="activeType" class="border px-4 py-2 rounded-lg flex-1 md:flex-none">
             <option :value="null">Semua</option>
             <option v-for="type in transactionTypes" :key="type" :value="type">
               {{ capitalize(type) }}
             </option>
           </select>
 
-          <!-- Withdraw Button -->
-          <button @click="$inertia.visit('/withdraw')"
+          <button @click="$inertia.visit('/tarik-tunai')"
                   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm flex items-center justify-center shadow-sm transition-all duration-200">
             <i class="fas fa-money-bill-wave mr-2"></i> Withdraw
           </button>
         </div>
       </div>
 
-      <!-- Table -->
       <div class="overflow-x-auto">
         <table class="min-w-full bg-white shadow-md rounded-xl overflow-hidden table-fixed">
           <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
@@ -51,16 +75,18 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="w in filteredWithdrawals" :key="w.id" class="border-b last:border-b-0">
+            <tr v-for="w in filteredWallets" :key="w.id" class="border-b last:border-b-0">
               <td class="px-4 py-2">{{ formatDate(w.created_at) }}</td>
               <td class="px-4 py-2 capitalize">{{ w.type }}</td>
               <td class="px-4 py-2">USDT {{ formatCurrency(w.amount) }}</td>
               <td class="px-4 py-2">
-                <span :class="statusClass(w.status)">{{ w.status }}</span>
+                <span :class="statusClass(w.status)">{{ capitalize(w.status) }}</span>
               </td>
             </tr>
-            <tr v-if="filteredWithdrawals.length === 0">
-              <td class="px-4 py-4 border text-center" colspan="4">Belum ada data</td>
+            <tr v-if="filteredWallets.length === 0">
+              <td class="px-4 py-4 border text-center text-gray-500" colspan="4">
+                Belum ada data transaksi
+              </td>
             </tr>
           </tbody>
         </table>
@@ -71,50 +97,60 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { usePage } from '@inertiajs/vue3'
+import axios from 'axios'
 import InvestorLayout from '@/Layouts/InvestorLayout.vue'
 
 const { props } = usePage()
 const user = props.auth?.user || {}
-const withdrawals = props.withdrawals || []
-const settings = props.settings || [] 
 const profileUrl = '/profile'
 const logoutUrl = '/logout'
 
-// Softcode filter dari settings
-const transactionTypes = ref(['withdraw']); 
+// Saldo
+const depositBalance = ref(props.depositBalance ?? 0)
+const totalProfit = ref(props.totalProfit ?? 0)
+const extraBonus = ref(props.extraBonus ?? 0)
+const sponsorFee = ref(props.sponsorFee ?? 0)
 
-settings.forEach(s => {
-  const key = s.key_name // harus key_name, bukan key
-  if (key.includes('profit_percent')) transactionTypes.value.push('profit')
-  if (key.includes('profit_sharing_level')) transactionTypes.value.push('profit sharing')
-  if (key.includes('bonus_profit')) transactionTypes.value.push('bonus profit')
-  if (key.includes('sponsor_fee')) transactionTypes.value.push('referal qr')
-})
-transactionTypes.value = [...new Set(transactionTypes.value)] // unik
+// Wallet riwayat
+const wallets = ref(props.wallets ?? [])
 
-// Filter
+// Dropdown filter tipe transaksi
+const transactionTypes = ref([
+  'deposit',
+  'profit',
+  'extra_bonus',
+  'affiliate_bonus',
+  'sponsor_fee',
+  'withdraw'
+])
 const activeType = ref(null)
-const filteredWithdrawals = computed(() => {
-  if (!activeType.value) return withdrawals
-  return withdrawals.filter(w => w.type === activeType.value)
+
+const filteredWallets = computed(() => {
+  let data = wallets.value
+  if (activeType.value) data = data.filter(w => w.type === activeType.value)
+  return data
 })
 
 // Helpers
 function formatCurrency(amount) {
-  return new Intl.NumberFormat('id-ID').format(amount)
+  return new Intl.NumberFormat('id-ID').format(amount || 0)
 }
 
 function formatDate(dateStr) {
+  if (!dateStr) return '-'
   const date = new Date(dateStr)
   return date.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
 function statusClass(status) {
-  switch(status) {
+  switch (status) {
     case 'pending': return 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs'
-    case 'completed': return 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs'
+    case 'success':
+    case 'completed':
+    case 'paid': return 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs'
+    case 'failed':
     case 'reject': return 'bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs'
     default: return 'bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs'
   }
@@ -124,6 +160,24 @@ function capitalize(str) {
   if (!str) return ''
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
+
+// Fetch realtime
+async function fetchWalletBalance() {
+  try {
+    const res = await axios.get('/investor/wallet-balance')
+    depositBalance.value = res.data.depositBalance
+    totalProfit.value = res.data.totalProfit
+    extraBonus.value = res.data.extraBonus
+    sponsorFee.value = res.data.sponsorFee
+    wallets.value = res.data.wallets ?? []
+  } catch (error) {
+    console.error('Gagal fetch wallet balance:', error)
+  }
+}
+
+onMounted(() => {
+  fetchWalletBalance()
+})
 </script>
 
 <style scoped>

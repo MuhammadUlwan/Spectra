@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AdminWithdrawController;
 use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\AffiliateLevelController;
+use App\Http\Controllers\Admin\AffiliateBonusRuleController;
 
 use App\Models\Announcement;
 use App\Models\Referral;
@@ -150,6 +152,34 @@ Route::middleware('auth')->group(function () {
             Route::post('/update', [AdminSettingController::class, 'update'])->name('admin.settings.update');
         });
 
+        // Admin Affiliate Levels & Bonus Rules
+        Route::get('/affiliate-levels', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'index'])->name('admin.affiliate-levels.index');
+
+        // JSON endpoint
+        Route::get('/affiliate-levels/json', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'json'])
+            ->name('admin.affiliate-levels.json');
+
+        // Tambah level
+        Route::post('/affiliate-levels', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'store'])->name('admin.affiliate-levels.store');
+
+        // **Update dan Delete (perbaikan)**
+        Route::put('/affiliate-levels/{affiliateLevel}', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'update'])->name('admin.affiliate-levels.update');
+        Route::delete('/affiliate-levels/{affiliateLevel}', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'destroy'])->name('admin.affiliate-levels.destroy');
+
+        Route::get('/affiliate-bonus-rules', [AffiliateBonusRuleController::class, 'index'])
+            ->name('admin.affiliate-bonus-rules.index');
+
+        Route::get('/affiliate-bonus-rules/json', [AffiliateBonusRuleController::class, 'jsonIndex']);
+
+        Route::post('/affiliate-bonus-rules', [AffiliateBonusRuleController::class, 'store'])
+            ->name('admin.affiliate-bonus-rules.store');
+
+        Route::put('/affiliate-bonus-rules/{id}', [AffiliateBonusRuleController::class, 'update'])
+            ->name('admin.affiliate-bonus-rules.update');
+
+        Route::delete('/affiliate-bonus-rules/{id}', [AffiliateBonusRuleController::class, 'destroy'])
+            ->name('admin.affiliate-bonus-rules.destroy');
+
         // Admin Withdraws
         Route::get('/withdraws', [AdminWithdrawController::class, 'index'])->name('withdraws.index');
         Route::get('/withdraws/{id}', [AdminWithdrawController::class, 'show'])->name('withdraws.show');
@@ -168,6 +198,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
     Route::post('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
+    // Daftar Konsultan
+    Route::post('/profile/daftar-konsultan', [ProfileController::class, 'daftarKonsultan'])
+    ->name('profile.daftarKonsultan');
 
     // ========================
     // Tarik Tunai
@@ -176,15 +209,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/tarik-tunai', [TarikTunaiController::class, 'store'])->name('tarik.store');
 
     // ========================
-    // Deposit Routes (Investor)
+    // Deposit & Dompet (Investor)
     // ========================
     Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
     Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
-    Route::get('/investor/wallet-balance', [\App\Http\Controllers\DashboardController::class, 'getWalletBalance']);
 
-    // ========================
-    // Dompet (Wallet)
-    // ========================
+    Route::get('/investor/wallet-balance', [WalletController::class, 'getWalletBalance']);
     Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
 
     // Endpoint API untuk validasi kode konsultan/referral
