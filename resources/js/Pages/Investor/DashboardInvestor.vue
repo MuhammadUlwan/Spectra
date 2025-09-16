@@ -1,16 +1,6 @@
 <template>
   <InvestorLayout :user="user" :profileUrl="profileUrl" :logoutUrl="logoutUrl">
     <div class="flex flex-col space-y-6 w-full">
-
-      <!-- Total Dompet -->
-      <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-6 text-white shadow-xl">
-        <h2 class="text-lg font-semibold opacity-90">TOTAL DOMPET</h2>
-        <p class="text-4xl font-bold mt-2">{{ currency }} {{ walletBalance.toLocaleString() }}</p>
-        <p class="mt-2 text-blue-100 flex items-center">
-          <i class="fas fa-user mr-1"></i> {{ user.name }}
-        </p>
-      </div>
-
       <!-- Statistik Keuangan -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div class="bg-white rounded-2xl shadow-md p-5">
@@ -33,13 +23,6 @@
       <!-- Slider Pengumuman Aktif -->
       <section class="p-1 container mx-auto">
         <div class="rounded-3xl overflow-hidden">
-          <!-- Header Pengumuman -->
-          <div class="bg-gradient-to-r from-blue-600 to-green-500 p-4 flex justify-center items-center text-white">
-            <h3 class="text-2xl font-bold flex items-center space-x-2">
-              <i class="fas fa-bullhorn"></i>
-              <span>Pengumuman</span>
-            </h3>
-          </div>
 
           <!-- Konten Slider -->
           <div class="mt-4 w-full">

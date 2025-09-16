@@ -43,6 +43,7 @@
 
       <!-- Content -->
       <div class="lg:col-span-3">
+
         <!-- Profil -->
         <div v-if="activeTab === 'profile'" class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div class="flex flex-col md:flex-row items-center md:items-start mb-6 pb-4 border-b border-gray-100">
@@ -91,20 +92,6 @@
               <i class="fas fa-edit mr-2"></i> Edit Profil
             </button>
           </div>
-        </div>
-
-        <!-- Keamanan -->
-        <div v-else-if="activeTab === 'security'" class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <h2 class="text-md font-medium text-gray-700 mb-4">Keamanan Akun</h2>
-          <p class="text-sm text-gray-500 mb-6">
-            Jaga keamanan akun Anda dengan mengubah password secara berkala dan aktifkan autentikasi 2-faktor jika tersedia.
-          </p>
-          <button
-            @click="$inertia.visit('/profile/security')"
-            class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors flex items-center"
-          >
-            <i class="fas fa-key mr-2"></i> Ubah Password
-          </button>
         </div>
 
         <!-- Notifikasi -->
@@ -158,66 +145,6 @@
           </div>
         </div>
 
-        <!-- Tagihan -->
-        <div v-else-if="activeTab === 'billing'" class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <h2 class="text-md font-medium text-gray-700 mb-4">Riwayat Tagihan</h2>
-          <p class="text-sm text-gray-500 mb-4">Riwayat transaksi deposit/pembelian paket Anda.</p>
-
-          <div v-if="billing.length" class="space-y-4">
-            <div v-for="item in billing" :key="item.id" class="p-4 bg-gray-50 border rounded-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div class="flex-1">
-                <p class="text-sm text-gray-800"><strong>{{ item.description }}</strong></p>
-                <p class="text-xs text-gray-500">{{ formatDate(item.created_at) }}</p>
-                <p class="text-sm text-gray-800">Jumlah: {{ item.amount }}</p>
-                <p class="text-sm text-gray-800">Status: {{ item.status }}</p>
-                <div class="flex items-center gap-2 mt-1" v-if="item.wallet_address">
-                  <span class="text-sm text-gray-800">Wallet: {{ item.wallet_address }}</span>
-                  <button @click="copyToClipboard(item.wallet_address)" class="text-blue-600 hover:text-blue-800 text-sm flex items-center">
-                    <i class="fas fa-copy mr-1"></i> Salin
-                  </button>
-                </div>
-              </div>
-              <div v-if="item.qr_url">
-                <img :src="item.qr_url" alt="QR Code Tagihan" class="w-32 h-32 mx-auto md:mx-0"/>
-              </div>
-            </div>
-          </div>
-
-          <div v-else class="text-center py-8 text-gray-400">
-            <i class="fas fa-receipt text-2xl mb-2 text-blue-400"></i>
-            <p class="text-sm">Belum ada riwayat tagihan</p>
-          </div>
-        </div>
-
-        <!-- Referral -->
-        <div v-else-if="activeTab === 'referral'" class="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <h2 class="text-md font-medium text-gray-700 mb-4">Program Referral</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <!-- Kode & QR Referral -->
-            <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Kode & QR Referral</label>
-              <div class="p-3 bg-gray-50 rounded-md border border-gray-200 flex flex-col items-center">
-                <img v-if="referral.qr" :src="referral.qr" alt="QR Code Referral" class="w-32 h-32 mb-2"/>
-                <span class="text-gray-800 font-medium">{{ user.referral_code }}</span>
-                <button @click="copyReferralCode" class="text-blue-600 hover:text-blue-800 text-sm mt-1">
-                  <i class="fas fa-copy mr-1"></i> Salin
-                </button>
-              </div>
-            </div>
-
-            <!-- Link Referral -->
-            <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Link Referral</label>
-              <div class="p-3 bg-gray-50 rounded-md border border-gray-200 flex flex-col items-center">
-                <span class="text-gray-800 text-sm break-all">{{ referralLink }}</span>
-                <button @click="copyReferralLink" class="text-blue-600 hover:text-blue-800 text-sm mt-1">
-                  <i class="fas fa-copy mr-1"></i> Salin
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
@@ -229,22 +156,19 @@ import { usePage } from '@inertiajs/vue3'
 
 const { props } = usePage()
 
-// User & Data
+// Data user
 const user = props.auth.user
 const billing = props.billing || []
-const referral = props.referral || { qr: '', code: user.referral_code }
+const referral = props.referral || { qr: null, code: user.referral_code }
+const notificationOptions = ref(props.notifications || [])
+const preferences = ref(props.preferences || { theme: 'light', language: 'id' })
 
-// Active tab sidebar
+// Sidebar
 const activeTab = ref('profile')
-
-// Sidebar menu
 const menuItems = [
   { name: 'profile', label: 'Informasi Profil', icon: 'fas fa-user' },
-  { name: 'security', label: 'Keamanan', icon: 'fas fa-shield-alt' },
   { name: 'notifications', label: 'Notifikasi', icon: 'fas fa-bell' },
   { name: 'preferences', label: 'Preferensi', icon: 'fas fa-cog' },
-  { name: 'billing', label: 'Tagihan', icon: 'fas fa-credit-card' },
-  { name: 'referral', label: 'Referral', icon: 'fas fa-users' }
 ]
 
 // User initial
@@ -256,26 +180,9 @@ const formatDate = (dateString) => {
   return new Intl.DateTimeFormat('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(dateString))
 }
 
-// Notifikasi
-const notificationOptions = ref(props.notifications || [])
+// Save functions
 const saveNotifications = () => $inertia.post('/profile/notifications', { options: notificationOptions.value })
-
-// Preferensi
-const preferences = ref(props.preferences || { theme: 'light', language: 'id' })
 const savePreferences = () => $inertia.post('/profile/preferences', preferences.value)
-
-// Referral
-const referralLink = computed(() => user.referral_code ? `${window.location.origin}/register?ref=${user.referral_code}` : '')
-
-// Fungsi copy
-const copyToClipboard = (text) => {
-  if (!text) return
-  navigator.clipboard.writeText(text)
-}
-
-// Tombol salin spesifik
-const copyReferralCode = () => copyToClipboard(user.referral_code)
-const copyReferralLink = () => copyToClipboard(referralLink.value)
 </script>
 
 <style scoped>

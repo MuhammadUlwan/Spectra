@@ -11,7 +11,7 @@
           <span class="text-gray-600 font-medium">Saldo Saat Ini</span>
         </div>
         <span class="text-xl md:text-2xl font-semibold text-gray-800">
-          Rp {{ formatCurrency(user.wallet || 0) }}
+          USDT {{ formatCurrency(user.wallet || 0) }}
         </span>
       </div>
     </div>
@@ -54,7 +54,7 @@
             <tr v-for="w in filteredWithdrawals" :key="w.id" class="border-b last:border-b-0">
               <td class="px-4 py-2">{{ formatDate(w.created_at) }}</td>
               <td class="px-4 py-2 capitalize">{{ w.type }}</td>
-              <td class="px-4 py-2">Rp {{ formatCurrency(w.amount) }}</td>
+              <td class="px-4 py-2">USDT {{ formatCurrency(w.amount) }}</td>
               <td class="px-4 py-2">
                 <span :class="statusClass(w.status)">{{ w.status }}</span>
               </td>

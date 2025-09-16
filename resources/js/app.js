@@ -9,7 +9,7 @@ import { Link } from '@inertiajs/vue3';
 import { createI18n } from 'vue-i18n';
 
 // ========================
-// Pesan i18n (diperluas)
+// Pesan i18n (gabungan)
 // ========================
 const messages = {
   id: {
@@ -40,7 +40,18 @@ const messages = {
     helloAdmin: 'Halo Admin',
     profile: 'Profil',
     logout: 'Keluar',
-    notifications: 'Notifikasi'
+    notifications: 'Notifikasi',
+    percentageLabel: 'Persentase', 
+    profitSettings: 'Pengaturan Profit',
+    profit_percent: 'Persentase Profit',
+    sponsor_fee_direct: 'Biaya Sponsor Langsung',
+    sponsor_fee_indirect: 'Biaya Sponsor Tidak Langsung',
+    profit_sharing_level1: 'Profit Sharing Level 1',
+    profit_sharing_level2: 'Profit Sharing Level 2',
+    profit_sharing_level3: 'Profit Sharing Level 3',
+    bonus_target_omset: 'Bonus Target Omset',
+    bonus_profit_extra: "Extra Profit Bonus",
+    profit_percent_15days : "Profit Percent for 15 Days",
   },
   en: {
     settingsTitle: 'System Settings',
@@ -70,7 +81,18 @@ const messages = {
     helloAdmin: 'Hello Admin',
     profile: 'Profile',
     logout: 'Logout',
-    notifications: 'Notifications'
+    notifications: 'Notifications',
+    percentageLabel: 'Percentage',
+    profitSettings: 'Profit Settings',
+    profit_percent: 'Profit Percent',
+    sponsor_fee_direct: 'Direct Sponsor Fee',
+    sponsor_fee_indirect: 'Indirect Sponsor Fee',
+    profit_sharing_level1: 'Profit Sharing Level 1',
+    profit_sharing_level2: 'Profit Sharing Level 2',
+    profit_sharing_level3: 'Profit Sharing Level 3',
+    bonus_target_omset: 'Target Turnover Bonus',
+    bonus_profit_extra: "Bonus Profit Tambahan",
+    profit_percent_15days : "Persentase Profit 15 Hari"
   },
 };
 
@@ -97,10 +119,9 @@ const i18n = createI18n({
 // ========================
 createInertiaApp({
   resolve: name =>
-resolvePageComponent(
-  `./Pages/${name}.vue`,
-  import.meta.glob('./Pages/**/*.vue')
-).then(module => module.default),
+    resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob('./Pages/**/*.vue')).then(
+      module => module.default
+    ),
   setup({ el, App, props, plugin }) {
     const app = createApp({ render: () => h(App, props) });
 
@@ -108,7 +129,6 @@ resolvePageComponent(
     app.use(i18n);
     app.component('Link', Link);
 
-    // override locale dari props Inertia jika ada
     if (props.initialPage.props.locale) {
       i18n.global.locale.value = props.initialPage.props.locale;
     }

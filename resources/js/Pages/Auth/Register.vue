@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-indigo-100 p-4">
     <div class="flex flex-col md:flex-row w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
-
-      <!-- Kiri - Ilustrasi -->
+      
+      <!-- Kiri: Ilustrasi -->
       <div class="md:w-2/5 bg-gradient-to-br from-green-600 to-indigo-700 text-white p-8 flex flex-col justify-center items-center">
         <h1 class="text-3xl font-bold mb-2 text-center">Bergabung dengan Spectra</h1>
         <p class="text-sm opacity-90 mb-6 text-center">Buat akun baru untuk mengakses dashboard</p>
@@ -13,15 +13,14 @@
         </p>
       </div>
 
-      <!-- Kanan - Form Register -->
+      <!-- Kanan: Form Register -->
       <div class="md:w-3/5 p-8 md:p-10">
         <h2 class="text-2xl md:text-3xl font-bold mb-2 text-gray-800 text-center">Daftar Akun</h2>
         <p class="text-gray-600 text-sm md:text-base mb-6 text-center">Isi formulir di bawah untuk membuat akun baru</p>
 
-        <!-- Form -->
         <form @submit.prevent="submit" class="space-y-4">
 
-          <!-- Nama Lengkap -->
+          <!-- Nama -->
           <div>
             <label class="block text-gray-700 text-sm font-medium mb-1">Nama Lengkap</label>
             <input type="text" v-model="form.name" placeholder="Nama Lengkap"
@@ -31,7 +30,7 @@
             <p v-if="errors.name" class="text-red-500 text-xs mt-1">{{ errors.name }}</p>
           </div>
 
-          <!-- Kode Konsultan / Referral -->
+          <!-- Kode Konsultan -->
           <div class="relative">
             <label class="block text-gray-700 text-sm font-medium mb-1">Kode Konsultan (Opsional)</label>
             <input type="text" v-model="form.konsultan_kode" placeholder="Masukkan kode referral"
@@ -41,9 +40,7 @@
                 'border-green-500': isReferralValid
               }"
             />
-            <!-- Centang Hijau -->
             <span v-if="isReferralValid" class="absolute right-3 top-3.5 text-green-500 font-bold">&#10003;</span>
-            <!-- Silang Merah -->
             <span v-else-if="form.konsultan_kode && !isReferralValid" class="absolute right-3 top-3.5 text-red-500 font-bold">&#10007;</span>
             <p v-if="errors.konsultan_kode" class="text-red-500 text-xs mt-1">{{ errors.konsultan_kode }}</p>
           </div>
@@ -81,15 +78,12 @@
           <!-- Password -->
           <div class="relative">
             <label class="block text-gray-700 text-sm font-medium mb-1">Password</label>
-            <input 
-              :type="showPassword ? 'text' : 'password'" 
-              v-model="form.password" placeholder="••••••••"
+            <input :type="showPassword ? 'text' : 'password'" v-model="form.password" placeholder="••••••••"
               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               :class="{'border-red-500': errors.password}" @input="clearError('password')"
             />
             <button type="button" @click="togglePassword" 
-              class="absolute right-3 top-3.5 h-full flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
+              class="absolute right-3 top-3.5 h-full flex items-center text-gray-500 hover:text-gray-700 focus:outline-none">
               <span v-if="!showPassword">👁️</span>
               <span v-else>🙈</span>
             </button>
@@ -99,14 +93,11 @@
           <!-- Submit -->
           <button type="submit"
             :disabled="isLoading"
-            class="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 flex items-center justify-center"
-          >
+            class="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 flex items-center justify-center">
             <span v-if="!isLoading">Register</span>
             <span v-else>Memproses...</span>
           </button>
 
-          <!-- Error server -->
-          <p v-if="errors.server" class="text-red-500 text-xs mt-2 text-center">{{ errors.server }}</p>
         </form>
       </div>
     </div>
@@ -120,10 +111,7 @@ import logo from '../../assets/logo.png'
 import axios from 'axios'
 import { debounce } from 'lodash'
 
-// Props dari Inertia
-const props = defineProps({
-  referralCode: String
-})
+const props = defineProps({ referralCode: String })
 
 const form = reactive({
   name: '',
@@ -149,17 +137,20 @@ onMounted(() => {
 
 // Watch kode referral dengan debounce
 watch(() => form.konsultan_kode, debounce(async (newVal) => {
-  if(!newVal) {
+  if (!newVal) {
     isReferralValid.value = false
     delete errors.konsultan_kode
     return
   }
   try {
-    const res = await axios.get(`/check-referral/${newVal}`)
+    // Pastikan request ke endpoint yang benar
+    const res = await axios.get(`/api/check-referral?kode=${newVal}`)
+    console.log(res.data) // <-- debug, lihat valid true/false
     isReferralValid.value = res.data.valid
-    if(!res.data.valid) errors.konsultan_kode = 'Kode konsultan tidak valid'
+    if (!res.data.valid) errors.konsultan_kode = 'Kode konsultan tidak valid'
     else delete errors.konsultan_kode
-  } catch {
+  } catch (err) {
+    console.error(err)
     isReferralValid.value = false
   }
 }, 400))
@@ -177,16 +168,14 @@ const submit = async () => {
   if(Object.keys(errors).length) return
 
   isLoading.value = true
+
   try {
     const res = await axios.post('/register', {...form})
     alert('Akun berhasil dibuat! Kode referral Anda: ' + res.data.referral_code)
-    window.location.href = '/dashboard'
+    window.location.href = res.data.dashboard
   } catch (err) {
-    if(err.response?.data?.errors) {
-      Object.assign(errors, err.response.data.errors)
-    } else {
-      errors.server = 'Terjadi kesalahan server, coba lagi.'
-    }
+    if(err.response?.data?.errors) Object.assign(errors, err.response.data.errors)
+    else alert('Terjadi kesalahan server, coba lagi.')
   } finally {
     isLoading.value = false
   }

@@ -44,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
             'apiBaseUrl'      => $apiBaseUrl,
             'referralCode'    => $referralCode,
             'defaultUserRole' => $defaultUserRole,
+            'recaptcha_site_key' => env('RECAPTCHA_SITE_KEY'),
         ]);
     }
 }
