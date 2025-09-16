@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\AdminWithdrawController;
 use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\AffiliateLevelController;
+use App\Http\Controllers\Admin\AffiliateBonusRuleController;
 
 use App\Models\Announcement;
 use App\Models\Referral;
@@ -149,6 +151,34 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [AdminSettingController::class, 'index'])->name('admin.settings');
             Route::post('/update', [AdminSettingController::class, 'update'])->name('admin.settings.update');
         });
+
+        // Admin Affiliate Levels & Bonus Rules
+        Route::get('/affiliate-levels', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'index'])->name('admin.affiliate-levels.index');
+
+        // JSON endpoint
+        Route::get('/affiliate-levels/json', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'json'])
+            ->name('admin.affiliate-levels.json');
+
+        // Tambah level
+        Route::post('/affiliate-levels', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'store'])->name('admin.affiliate-levels.store');
+
+        // **Update dan Delete (perbaikan)**
+        Route::put('/affiliate-levels/{affiliateLevel}', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'update'])->name('admin.affiliate-levels.update');
+        Route::delete('/affiliate-levels/{affiliateLevel}', [App\Http\Controllers\Admin\AffiliateLevelController::class, 'destroy'])->name('admin.affiliate-levels.destroy');
+
+        Route::get('/affiliate-bonus-rules', [AffiliateBonusRuleController::class, 'index'])
+            ->name('admin.affiliate-bonus-rules.index');
+
+        Route::get('/affiliate-bonus-rules/json', [AffiliateBonusRuleController::class, 'jsonIndex']);
+
+        Route::post('/affiliate-bonus-rules', [AffiliateBonusRuleController::class, 'store'])
+            ->name('admin.affiliate-bonus-rules.store');
+
+        Route::put('/affiliate-bonus-rules/{id}', [AffiliateBonusRuleController::class, 'update'])
+            ->name('admin.affiliate-bonus-rules.update');
+
+        Route::delete('/affiliate-bonus-rules/{id}', [AffiliateBonusRuleController::class, 'destroy'])
+            ->name('admin.affiliate-bonus-rules.destroy');
 
         // Admin Withdraws
         Route::get('/withdraws', [AdminWithdrawController::class, 'index'])->name('withdraws.index');

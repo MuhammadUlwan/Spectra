@@ -29,26 +29,6 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label :class="['block text-sm font-medium mb-1', form.theme === 'light' ? 'text-gray-700' : 'text-gray-300']">
-                {{ $t('currencyLabel') }}
-              </label>
-              <div class="relative">
-                <input type="text" :value="form.currency" disabled :class="inputClass" />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <i class="fas fa-dollar-sign"></i>
-                </span>
-              </div>
-            </div>
-            <div>
-              <label :class="['block text-sm font-medium mb-1', form.theme === 'light' ? 'text-gray-700' : 'text-gray-300']">
-                {{ $t('languageLabel') }}
-              </label>
-              <select v-model="form.language" :class="inputClass">
-                <option value="id">Indonesia</option>
-                <option value="en">English</option>
-              </select>
-            </div>
-            <div>
-              <label :class="['block text-sm font-medium mb-1', form.theme === 'light' ? 'text-gray-700' : 'text-gray-300']">
                 {{ $t('themeLabel') }}
               </label>
               <select v-model="form.theme" :class="inputClass">
@@ -56,6 +36,31 @@
                 <option value="dark">{{ $t('themeDark') }}</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        <!-- Affiliate Settings Shortcut -->
+        <div :class="['p-6 mt-6 rounded-xl shadow', form.theme === 'light' ? 'bg-gray-50' : 'bg-gray-800/50']">
+          <h2 :class="['text-xl font-semibold mb-4 flex items-center', form.theme === 'light' ? 'text-gray-900' : 'text-white']">
+            <i class="fas fa-network-wired mr-2 text-indigo-500"></i>
+            Affiliate Settings
+          </h2>
+          <div class="flex flex-wrap gap-4">
+            <Link
+              href="/admin/affiliate-levels"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md flex items-center justify-center transition cursor-pointer"
+            >
+              <i class="fas fa-cogs mr-2"></i>
+              Manage Affiliate Levels
+            </Link>
+
+            <Link
+              href="/admin/affiliate-bonus-rules"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md flex items-center justify-center transition cursor-pointer"
+            >
+              <i class="fas fa-cogs mr-2"></i>
+              Manage Bonus Rules
+            </Link>
           </div>
         </div>
 
@@ -138,7 +143,7 @@
 
         <!-- Submit Button -->
         <div :class="['p-6 rounded-b-xl flex justify-end', form.theme === 'light' ? 'bg-white' : 'bg-gray-800/50']">
-          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition flex items-center">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-600 text-white px-5 py-2 rounded-md text-center transition cursor-pointer">
             <i class="fas fa-save mr-2"></i>
             {{ $t('saveButton') }}
           </button>
@@ -150,8 +155,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { usePage, router } from '@inertiajs/vue3'
+import { ref, computed } from 'vue'
+import { usePage, router, Link } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 
@@ -169,20 +174,15 @@ locale.value = localeProp
 
 // Form
 const form = ref({
-  currency: userPref?.currency || 'USDT',
   bank_name: userPref?.bank_name || '',
   bank_number: userPref?.bank_number || '',
   academy_url: settings?.url_academy || '',
   tutorial_url: settings?.url_tutorial || '',
   chatbot_url: settings?.chatbot_url || '',
-  language: userPref?.language || 'id',
   theme: userPref?.theme || 'light',
   bank_qr: null,
   previewQr: userPref?.bank_qr ? `/storage/${userPref.bank_qr}` : null,
 })
-
-// Watch language untuk i18n
-watch(() => form.value.language, (newLang) => locale.value = newLang)
 
 const formClass = computed(() => form.value.theme === 'light' ? 'bg-white text-gray-900' : 'bg-gray-800 text-white')
 const inputClass = computed(() => form.value.theme === 'light' 
