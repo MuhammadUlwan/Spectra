@@ -181,15 +181,28 @@ Route::middleware('auth')->group(function () {
     Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
     Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
     Route::get('/investor/wallet-balance', [\App\Http\Controllers\DashboardController::class, 'getWalletBalance']);
+
     // ========================
     // Dompet (Wallet)
     // ========================
     Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
 
-// Endpoint API untuk validasi kode konsultan/referral
-Route::get('/check-referral/{code}', function($code) {
-    $exists = \App\Models\User::where('referral_code', $code)->exists();
-    return response()->json(['valid' => $exists]);
-});
+    // Endpoint API untuk validasi kode konsultan/referral
+    Route::get('/check-referral/{code}', function($code) {
+        $exists = \App\Models\User::where('referral_code', $code)->exists();
+        return response()->json(['valid' => $exists]);
+    });
+
+    // ========================
+    // Investor Karir & Referral
+    // ========================
+    Route::get('/karir', function () {
+        $user = Auth::user();
+
+        return Inertia::render('Investor/Karir', [
+            'auth' => ['user' => $user],
+            'referralCode' => $user->referral_code,
+        ]);
+    })->name('karir');
 
 });

@@ -18,7 +18,7 @@
       </div>
 
       <!-- Settings card -->
-      <div :class="[formClass, 'rounded-xl shadow-lg divide-y', form.theme === 'light' ? 'divide-gray-200' : 'divide-gray-700']">
+      <form @submit.prevent="submitSettings" :class="[formClass, 'rounded-xl shadow-lg divide-y', form.theme === 'light' ? 'divide-gray-200' : 'divide-gray-700']">
 
         <!-- General Settings -->
         <div class="p-6">
@@ -79,6 +79,24 @@
               <input type="text" v-model="form.bank_number" :placeholder="bankNumberExample" :class="inputClass" />
             </div>
           </div>
+
+          <!-- Upload QR Code -->
+          <div class="mt-4">
+            <label :class="['block text-sm font-medium mb-1', form.theme === 'light' ? 'text-gray-700' : 'text-gray-300']">
+              {{ $t('bankQrCode') }}
+            </label>
+            <input type="file" @change="onFileChange" accept="image/*" :class="inputClass" />
+
+            <!-- Preview -->
+            <div v-if="form.previewQr" class="mt-3">
+              <p class="text-sm mb-1">Preview:</p>
+              <img
+                :src="form.previewQr"
+                alt="QR Code"
+                class="w-32 h-32 object-contain border rounded-md bg-white p-2"
+              />
+            </div>
+          </div>
         </div>
 
         <!-- URL Settings -->
@@ -120,13 +138,13 @@
 
         <!-- Submit Button -->
         <div :class="['p-6 rounded-b-xl flex justify-end', form.theme === 'light' ? 'bg-white' : 'bg-gray-800/50']">
-          <button type="submit" @click="submitSettings" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition flex items-center">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition flex items-center">
             <i class="fas fa-save mr-2"></i>
             {{ $t('saveButton') }}
           </button>
         </div>
 
-      </div>
+      </form>
     </div>
   </AdminLayout>
 </template>
@@ -159,6 +177,8 @@ const form = ref({
   chatbot_url: settings?.chatbot_url || '',
   language: userPref?.language || 'id',
   theme: userPref?.theme || 'light',
+  bank_qr: null,
+  previewQr: userPref?.bank_qr ? `/storage/${userPref.bank_qr}` : null,
 })
 
 // Watch language untuk i18n
@@ -172,9 +192,26 @@ const inputClass = computed(() => form.value.theme === 'light'
 const bankNameExample = computed(() => form.value.language === 'id' ? 'Contoh: BCA' : 'Example: BCA')
 const bankNumberExample = computed(() => form.value.language === 'id' ? 'Contoh: 123456789' : 'Example: 123456789')
 
+// Ganti file QR
+function onFileChange(e) {
+  const file = e.target.files[0]
+  if (file) {
+    form.value.bank_qr = file
+    form.value.previewQr = URL.createObjectURL(file)
+  }
+}
+
 // Submit settings
 function submitSettings() {
-  router.post('/admin/settings/update', form.value, {
+  const data = new FormData()
+  for (const key in form.value) {
+    if (form.value[key] !== null) {
+      data.append(key, form.value[key])
+    }
+  }
+
+  router.post('/admin/settings/update', data, {
+    forceFormData: true,
     onSuccess: () => alert(t('settingsSaved'))
   })
 }
@@ -192,7 +229,6 @@ const sidebarMenu = [
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css");
 
-/* Scrollbar untuk main content */
 main::-webkit-scrollbar { width: 6px; }
 main::-webkit-scrollbar-thumb { background-color: rgba(100,100,100,0.3); border-radius: 3px; }
 main::-webkit-scrollbar-thumb:hover { background-color: rgba(100,100,100,0.5); }

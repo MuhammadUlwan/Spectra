@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use App\Helpers\ProfitHelper;
 use App\Models\Setting;
 
 class DepositController extends Controller
@@ -26,10 +27,22 @@ class DepositController extends Controller
                 return $p;
             });
 
+        // 👉 Ambil data bank dari user_preferences milik admin
+        $bankInfo = DB::table('user_preferences')
+            ->join('users', 'users.id', '=', 'user_preferences.user_id')
+            ->where('users.role', 'admin')
+            ->select(
+                'user_preferences.bank_name',
+                'user_preferences.bank_number',
+                'user_preferences.bank_qr'
+            )
+            ->first();
+
         return inertia('Investor/Deposit', [
             'user' => $user,
             'packages' => $packages,
             'settings' => $settings,
+            'bankInfo' => $bankInfo, // 👉 kirim ke Vue
             'profileUrl' => route('profile'),
             'logoutUrl' => route('logout')
         ]);
@@ -39,17 +52,12 @@ class DepositController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'package_ids' => 'required|json',
+            'package_id' => 'required|exists:investment_packages,id',
             'transfer_date' => 'required|date',
-            'transfer_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'transfer_file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
         $user = Auth::user();
-        $packageIds = json_decode($request->package_ids, true);
-
-        if (empty($packageIds)) {
-            return back()->withErrors(['Paket tidak valid.']);
-        }
 
         $file = $request->file('transfer_file');
         $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
@@ -58,24 +66,20 @@ class DepositController extends Controller
         $file->move($destinationPath, $filename);
         $proofPath = 'deposits/' . $filename;
 
-        foreach ($packageIds as $id) {
-            $package = DB::table('investment_packages')->where('id', $id)->first();
-            if (!$package) continue;
+        $package = DB::table('investment_packages')->where('id', $request->package_id)->first();
 
-            DB::table('investments')->insert([
-                'user_id' => $user->id,
-                'package_id' => $package->id,
-                'amount' => $package->amount,
-                'start_date' => null,
-                'end_date' => null,
-                'status' => 'pending',
-                'proof_transfer' => $proofPath,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-        }
+        DB::table('investments')->insert([
+            'user_id' => $user->id,
+            'package_id' => $package->id,
+            'amount' => $package->amount,
+            'start_date' => null,
+            'end_date' => null,
+            'status' => 'pending',
+            'proof_transfer' => $proofPath,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        // 🔹 Redirect Inertia ke dashboard langsung
         return redirect()->route('dashboard')->with('success', 'Deposit berhasil! Menunggu konfirmasi admin.');
     }
 }
