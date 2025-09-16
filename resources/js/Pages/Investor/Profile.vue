@@ -75,12 +75,6 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Bergabung Sejak</label>
                 <div class="p-3 text-sm text-gray-800 bg-gray-50 rounded-md">{{ formatDate(user.created_at) }}</div>
               </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-500 mb-1">Status Akun</label>
-                <div class="p-3 text-sm bg-gray-50 rounded-md inline-flex items-center">
-                  <span class="text-gray-800">{{ user.status || '-' }}</span>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -125,13 +119,6 @@
               <select v-model="preferences.theme" class="p-2 border rounded-md w-full">
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-500 mb-1">Bahasa</label>
-              <select v-model="preferences.language" class="p-2 border rounded-md w-full">
-                <option value="id">Bahasa Indonesia</option>
-                <option value="en">English</option>
               </select>
             </div>
           </div>

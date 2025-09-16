@@ -15,7 +15,6 @@ class AffiliateBonusRule extends Model
         'target_omset',          // target omset untuk dapat bonus
         'extra_percent',         // tambahan persentase bonus
         'required_min_deposit',  // minimal deposit untuk ambil bonus
-        'status',                // active / inactive
     ];
 
     public $timestamps = true;

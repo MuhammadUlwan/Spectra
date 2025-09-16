@@ -22,11 +22,11 @@
         <table class="min-w-full divide-y" :class="tableDivideClass">
           <thead>
             <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase" :class="tableTextClass">Role</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase" :class="tableTextClass">Target Omset</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase" :class="tableTextClass">Extra Percent</th>
+              <th class="px-6 py-3 text-left text-xs font-medium uppercase" :class="tableTextClass">Extra Persen</th>
               <th class="px-6 py-3 text-left text-xs font-medium uppercase" :class="tableTextClass">Minimal Deposit</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase" :class="tableTextClass">Status</th>
-              <th class="px-6 py-3 text-right text-xs font-medium uppercase" :class="tableTextClass">Actions</th>
+              <th class="px-6 py-3 text-right text-xs font-medium uppercase" :class="tableTextClass">Aksi</th>
             </tr>
           </thead>
           <tbody :class="tableBodyClass">
@@ -34,10 +34,10 @@
               <td :colspan="5" class="px-6 py-4 text-center" :class="textColorClass">No data available</td>
             </tr>
             <tr v-for="rule in rules" :key="rule.id" :class="{'bg-yellow-100 dark:bg-yellow-900': form.id === rule.id}">
+              <td class="px-6 py-4 capitalize">Affiliate / Consultant</td>
               <td class="px-6 py-4">{{ formatNumber(rule.target_omset) }}</td>
               <td class="px-6 py-4">{{ formatPercent(rule.extra_percent) }}</td>
               <td class="px-6 py-4">{{ formatNumber(rule.required_min_deposit) }}</td>
-              <td class="px-6 py-4 capitalize">{{ rule.status }}</td>
               <td class="px-6 py-4 text-right">
                 <button @click="editRule(rule)" class="text-blue-500 hover:underline mr-2">Edit</button>
                 <button @click="deleteRule(rule.id)" class="text-red-500 hover:underline">Delete</button>
@@ -54,16 +54,20 @@
         </h2>
         <form @submit.prevent="submitForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
+            <label class="block text-sm font-medium mb-1" :class="textColorClass">Role</label>
+            <input type="text" value="Affiliate / Consultant" disabled :class="inputClass" />
+          </div>
+          <div>
             <label class="block text-sm font-medium mb-1" :class="textColorClass">Target Omset</label>
             <input
               type="text"
               v-model="formattedTargetOmset"
               :class="inputClass"
-              placeholder="e.g. 1000"
+              placeholder="e.g. 10000"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1" :class="textColorClass">Extra Percent</label>
+            <label class="block text-sm font-medium mb-1" :class="textColorClass">Extra Persen</label>
             <input
               type="text"
               v-model="formattedExtraPercent"
@@ -77,15 +81,8 @@
               type="text"
               v-model="formattedMinDeposit"
               :class="inputClass"
-              placeholder="e.g. 300"
+              placeholder="e.g. 1000"
             />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1" :class="textColorClass">Status</label>
-            <select v-model="form.status" :class="inputClass">
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
           </div>
           <div class="md:col-span-2 text-right flex justify-end gap-2">
             <button type="button" v-if="form.id" @click="resetForm" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
@@ -121,7 +118,8 @@ const sidebarMenu = [
   { label: "Investasi", url: "/admin/investments", icon: "fas fa-chart-line", active: url.startsWith('/admin/investments') },
   { label: "Pengguna", url: "/admin/users", icon: "fas fa-users", active: url.startsWith('/admin/users') },
   { label: "Withdraw", url: "/admin/withdraws", icon: "fas fa-money-bill-wave", active: url.startsWith('/admin/withdraws') },
-  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog", active: url.startsWith('/admin/settings') }, // aktif untuk affiliate
+  { label: "Affiliate Bonus", url: "/admin/affiliate-bonus-rules", icon: "fas fa-gift", active: url.startsWith('/admin/affiliate-bonus-rules') },
+  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog", active: url.startsWith('/admin/settings') },
 ]
 
 // Form & State
@@ -132,7 +130,6 @@ const form = ref({
   target_omset: null,
   extra_percent: null,
   required_min_deposit: null,
-  status: 'active'
 })
 
 // ---------- Formatting ----------
@@ -194,7 +191,6 @@ function submitForm() {
     target_omset: form.value.target_omset,
     extra_percent: form.value.extra_percent,
     required_min_deposit: form.value.required_min_deposit,
-    status: form.value.status
   }
   const method = form.value.id ? 'put' : 'post'
   const url = form.value.id ? `/admin/affiliate-bonus-rules/${form.value.id}` : '/admin/affiliate-bonus-rules'
@@ -220,7 +216,7 @@ function deleteRule(id) {
 }
 
 function resetForm() {
-  form.value = { id: null, target_omset: null, extra_percent: null, required_min_deposit: null, status: 'active' }
+  form.value = { id: null, target_omset: null, extra_percent: null, required_min_deposit: null }
 }
 
 // Tombol kembali

@@ -23,7 +23,6 @@ class ProfileController extends Controller
                             'id'            => $d->id,
                             'description'   => $d->description ?? 'Investment / Paket',
                             'amount'        => $d->amount,
-                            'status'        => $d->status ?? 'pending',
                             'created_at'    => $d->created_at,
                             'wallet_address'=> $d->wallet_address ?? null,
                             'qr_url'        => $d->qr_url ?? null,

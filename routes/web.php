@@ -198,6 +198,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
     Route::post('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
+    // Daftar Konsultan
+    Route::post('/profile/daftar-konsultan', [ProfileController::class, 'daftarKonsultan'])
+    ->name('profile.daftarKonsultan');
 
     // ========================
     // Tarik Tunai
@@ -206,15 +209,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/tarik-tunai', [TarikTunaiController::class, 'store'])->name('tarik.store');
 
     // ========================
-    // Deposit Routes (Investor)
+    // Deposit & Dompet (Investor)
     // ========================
     Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
     Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
-    Route::get('/investor/wallet-balance', [\App\Http\Controllers\DashboardController::class, 'getWalletBalance']);
 
-    // ========================
-    // Dompet (Wallet)
-    // ========================
+    Route::get('/investor/wallet-balance', [WalletController::class, 'getWalletBalance']);
     Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
 
     // Endpoint API untuk validasi kode konsultan/referral

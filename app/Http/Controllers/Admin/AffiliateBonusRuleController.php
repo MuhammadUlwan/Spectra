@@ -9,49 +9,52 @@ use Inertia\Inertia;
 
 class AffiliateBonusRuleController extends Controller
 {
-    // Tampilkan halaman Inertia
     public function index()
     {
         return Inertia::render('Admin/AffiliateBonusRules');
     }
 
-    // JSON endpoint untuk Vue
     public function jsonIndex()
     {
         $rules = AffiliateBonusRule::orderBy('id')->get();
         return response()->json($rules);
     }
 
-    // Simpan data baru
     public function store(Request $request)
     {
         $request->validate([
             'target_omset' => 'required|numeric',
             'extra_percent' => 'required|numeric',
             'required_min_deposit' => 'required|numeric',
-            'status' => 'required|in:active,inactive',
         ]);
 
-        $rule = AffiliateBonusRule::create($request->all());
+        $rule = AffiliateBonusRule::create($request->only([
+            'target_omset',
+            'extra_percent',
+            'required_min_deposit',
+        ]));
+
         return response()->json($rule, 201);
     }
 
-    // Update data
     public function update(Request $request, $id)
     {
         $request->validate([
             'target_omset' => 'required|numeric',
             'extra_percent' => 'required|numeric',
             'required_min_deposit' => 'required|numeric',
-            'status' => 'required|in:active,inactive',
         ]);
 
         $rule = AffiliateBonusRule::findOrFail($id);
-        $rule->update($request->all());
+        $rule->update($request->only([
+            'target_omset',
+            'extra_percent',
+            'required_min_deposit',
+        ]));
+
         return response()->json($rule);
     }
 
-    // Hapus data
     public function destroy($id)
     {
         $rule = AffiliateBonusRule::findOrFail($id);
