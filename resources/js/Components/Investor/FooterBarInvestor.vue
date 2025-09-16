@@ -1,47 +1,31 @@
 <template>
-  <aside
+  <!-- Footer Bar di bagian bawah -->
+  <footer
     :class="[
-      'fixed top-0 left-0 h-full bg-gray-800 z-40 border-r border-gray-700 transition-all duration-300',
-      collapsed ? 'w-16 overflow-hidden' : 'w-64 overflow-auto'
+      'fixed bottom-0 left-0 right-0 bg-gray-800 z-40 border-t border-gray-700 transition-all duration-300',
+      collapsed ? 'h-16 overflow-hidden' : 'h-auto overflow-auto'
     ]"
   >
-    <!-- Header sidebar -->
-    <div class="flex items-center h-16 px-4 border-b border-gray-700">
-      <button @click="$emit('update:collapsed', !collapsed)" class="flex flex-col justify-center items-center h-8 w-8 focus:outline-none group">
-        <span class="block h-0.5 w-6 bg-gray-400 transition-all duration-300" :class="{'rotate-45 translate-y-2.5': collapsed}"></span>
-        <span class="block h-0.5 w-6 bg-gray-400 my-1.5 transition-all duration-300" :class="{'opacity-0': collapsed}"></span>
-        <span class="block h-0.5 w-6 bg-gray-400 transition-all duration-300" :class="{'-rotate-45 -translate-y-2.5': collapsed}"></span>
-      </button>
-      <transition name="fade-slide">
-        <h1 v-if="!collapsed" class="flex items-center text-white font-bold text-lg ml-3 whitespace-nowrap">
-          Spectra Investor
-        </h1>
-      </transition>
-    </div>
+    <!-- Header footer (bisa dihilangkan atau disederhanakan) -->
 
-    <!-- Menu -->
-    <nav class="flex-1 mt-2 px-2">
-      <ul>
-        <li v-for="item in menuItems" :key="item.label" class="group mb-1">
+
+    <!-- Menu - Diubah menjadi horizontal -->
+    <nav class="flex-1 px-2 py-2">
+      <div class="flex flex-wrap justify-center gap-1">
+        <div v-for="item in menuItems" :key="item.label" class="group">
           <a
             :href="item.url || '#'"
             @click.prevent="handleClick(item)"
-            class="flex items-center px-3 py-3 rounded-lg transition-all duration-200 relative"
+            class="flex flex-col items-center px-3 py-2 rounded-lg transition-all duration-200 relative min-w-[80px]"
             :class="item.active
               ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold shadow-lg'
               : 'text-gray-300 hover:bg-gray-700'"
           >
-            <i :class="item.icon + ' w-5 text-center text-lg'"></i>
-            <span v-if="!collapsed" class="ml-3 text-sm">{{ item.label }}</span>
-            <span
-              v-if="collapsed"
-              class="absolute left-16 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap"
-            >
-              {{ item.label }}
-            </span>
+            <i :class="item.icon + ' text-center text-lg mb-1'"></i>
+            <span class="text-xs text-center">{{ item.label }}</span>
           </a>
-        </li>
-      </ul>
+        </div>
+      </div>
     </nav>
 
     <!-- Simple modal untuk coming soon -->
@@ -53,7 +37,10 @@
         </button>
       </div>
     </div>
-  </aside>
+  </footer>
+
+  <!-- Spacer untuk konten utama agar tidak tertutup footer -->
+  <div :class="['transition-all duration-300', collapsed ? 'h-16' : 'h-auto']"></div>
 </template>
 
 <script setup>
@@ -113,12 +100,11 @@ const handleClick = (item) => {
   if (item.comingSoon) {
     showComingSoon.value = true
   } else if (item.url) {
-    // Jika url internal (dimulai dengan "/"), pakai Inertia visit
-  if (item.url.startsWith('/')) {
-    router.visit(item.url) // pakai Inertia
-  } else {
-    window.open(item.url, '_blank') // eksternal
-  }
+    if (item.url.startsWith('/')) {
+      router.visit(item.url)
+    } else {
+      window.open(item.url, '_blank')
+    }
   }
 }
 </script>

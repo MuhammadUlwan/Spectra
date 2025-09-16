@@ -1,6 +1,8 @@
 <template>
+  <InvestorProfileHeader :user="user" :logoutUrl="logoutUrl" />
   <div class="min-h-screen bg-gray-50 p-6">
     <!-- Header -->
+
     <div class="max-w-4xl mx-auto mb-6 flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-800 mb-1">Profil Pengguna</h1>
@@ -220,11 +222,14 @@
 
       </div>
     </div>
+    <FooterBarInvestor />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import InvestorProfileHeader from '@/Components/Investor/InvestorProfileHeader.vue'
+import FooterBarInvestor from '@/Components/Investor/FooterBarInvestor.vue'
 import { usePage } from '@inertiajs/vue3'
 
 const { props } = usePage()

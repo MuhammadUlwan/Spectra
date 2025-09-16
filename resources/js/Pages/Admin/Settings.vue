@@ -4,24 +4,21 @@
     :profileUrl="profileUrl"
     :logoutUrl="logoutUrl"
     :sidebarMenu="sidebarMenu"
+    pageTitle="$t('settingsTitle')"
   >
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto">
       <!-- Header section -->
       <div class="mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              {{ $t('settingsTitle') }}
-            </h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-2 text-sm md:text-base">
-              {{ $t('settingsSubtitle') }}
-            </p>
-          </div>
-        </div>
+        <h1 :class="['text-3xl font-bold', form.theme === 'light' ? 'text-gray-900' : 'text-white']">
+          {{ $t('settingsTitle') }}
+        </h1>
+        <p :class="['mt-2', form.theme === 'light' ? 'text-gray-700' : 'text-gray-400']">
+          {{ $t('settingsDescription') }}
+        </p>
       </div>
 
       <!-- Settings card -->
-      <div :class="[formClass, 'rounded-xl shadow-lg divide-y', form.theme === 'light' ? 'divide-gray-200' : 'divide-gray-700']">
+      <form @submit.prevent="submitSettings" :class="[formClass, 'rounded-xl shadow-lg divide-y', form.theme === 'light' ? 'divide-gray-200' : 'divide-gray-700']">
 
         <!-- General Settings -->
         <div class="p-6">
@@ -82,6 +79,24 @@
               <input type="text" v-model="form.bank_number" :placeholder="bankNumberExample" :class="inputClass" />
             </div>
           </div>
+
+          <!-- Upload QR Code -->
+          <div class="mt-4">
+            <label :class="['block text-sm font-medium mb-1', form.theme === 'light' ? 'text-gray-700' : 'text-gray-300']">
+              {{ $t('bankQrCode') }}
+            </label>
+            <input type="file" @change="onFileChange" accept="image/*" :class="inputClass" />
+
+            <!-- Preview -->
+            <div v-if="form.previewQr" class="mt-3">
+              <p class="text-sm mb-1">Preview:</p>
+              <img
+                :src="form.previewQr"
+                alt="QR Code"
+                class="w-32 h-32 object-contain border rounded-md bg-white p-2"
+              />
+            </div>
+          </div>
         </div>
 
       <!-- Profit & Fee Settings -->
@@ -102,6 +117,7 @@
           </div>
         </div>
       </div>
+
 
         <!-- URL Settings -->
         <div class="p-6">
@@ -142,13 +158,13 @@
 
         <!-- Submit Button -->
         <div :class="['p-6 rounded-b-xl flex justify-end', form.theme === 'light' ? 'bg-white' : 'bg-gray-800/50']">
-          <button type="submit" @click="submitSettings" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition flex items-center">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition flex items-center">
             <i class="fas fa-save mr-2"></i>
             {{ $t('saveButton') }}
           </button>
         </div>
 
-      </div>
+      </form>
     </div>
   </AdminLayout>
 </template>
@@ -181,6 +197,8 @@ const form = ref({
   chatbot_url: settings?.chatbot_url || '',
   language: userPref?.language || 'id',
   theme: userPref?.theme || 'light',
+  bank_qr: null,
+  previewQr: userPref?.bank_qr ? `/storage/${userPref.bank_qr}` : null,
 })
 
 // Object profitSettings diambil dari props Inertia (database)
@@ -196,6 +214,7 @@ const profitSettings = ref({
   profit_percent_15days: settings.profit_percent_15days || 3.5,
 })
 
+
 // Watch language untuk i18n
 watch(() => form.value.language, (newLang) => locale.value = newLang)
 
@@ -207,24 +226,43 @@ const inputClass = computed(() => form.value.theme === 'light'
 const bankNameExample = computed(() => form.value.language === 'id' ? 'Contoh: BCA' : 'Example: BCA')
 const bankNumberExample = computed(() => form.value.language === 'id' ? 'Contoh: 123456789' : 'Example: 123456789')
 
+// Ganti file QR
+function onFileChange(e) {
+  const file = e.target.files[0]
+  if (file) {
+    form.value.bank_qr = file
+    form.value.previewQr = URL.createObjectURL(file)
+  }
+}
+
 // Submit settings
 function submitSettings() {
-  router.post('/admin/settings/update', {
-    ...form.value,
-    ...profitSettings.value
-  }, {
-    onSuccess: () => alert(t('saveSuccess')),
-    onError: () => alert(t('saveError'))
+  const data = new FormData()
+  for (const key in form.value) {
+    if (form.value[key] !== null) {
+      data.append(key, form.value[key])
+    }
+  }
+
+  router.post('/admin/settings/update', data, {
+    forceFormData: true,
+    onSuccess: () => alert(t('settingsSaved'))
   })
 }
 
-
+// Sidebar menu
+const sidebarMenu = [
+  { label: "Dashboard", url: "/admin/dashboard", icon: "fas fa-home" },
+  { label: "Investasi", url: "/admin/investments", icon: "fas fa-chart-line" },
+  { label: "Pengguna", url: "/admin/users", icon: "fas fa-users" },
+  { label: "Withdraw", url: "/admin/withdraws", icon: "fas fa-money-bill-wave" },
+  { label: "Pengaturan", url: "/admin/settings", icon: "fas fa-cog", active: true },
+]
 </script>
 
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css");
 
-/* Scrollbar untuk main content */
 main::-webkit-scrollbar { width: 6px; }
 main::-webkit-scrollbar-thumb { background-color: rgba(100,100,100,0.3); border-radius: 3px; }
 main::-webkit-scrollbar-thumb:hover { background-color: rgba(100,100,100,0.5); }

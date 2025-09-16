@@ -1,8 +1,8 @@
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import SidebarInvestor from '@/Components/Investor/SidebarInvestor.vue';
-import HeaderInvestor from '@/Components/Investor/HeaderInvestor.vue';
+import { ref, watch, computed, onMounted } from 'vue'
+import { usePage } from '@inertiajs/vue3'
+import FooterBarInvestor from '@/Components/Investor/FooterBarInvestor.vue'
+import HeaderInvestor from '@/Components/Investor/HeaderInvestor.vue'
 
 const props = defineProps({
   user: { type: Object, default: () => ({}) },
@@ -10,38 +10,39 @@ const props = defineProps({
   logoutUrl: { type: String, default: '/logout' },
   sidebarMenu: { type: Array, default: () => [] },
   userPref: { type: Object, default: () => ({}) },
-});
+})
 
-const sidebarCollapsed = ref(false);
+const sidebarCollapsed = ref(false)
 onMounted(() => {
-  const saved = localStorage.getItem('sidebarCollapsed');
-  sidebarCollapsed.value = saved === 'true';
-});
+  const saved = localStorage.getItem('sidebarCollapsed')
+  sidebarCollapsed.value = saved === 'true'
+})
 watch(sidebarCollapsed, val => {
-  localStorage.setItem('sidebarCollapsed', val);
-});
+  localStorage.setItem('sidebarCollapsed', val)
+})
 
-// Theme berdasarkan userPref, fallback ke light
+// Theme berdasarkan userPref
 const themeClass = computed(() => {
-  const theme = props.userPref?.theme ?? 'light';
-  return theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900';
-});
+  const theme = props.userPref?.theme ?? 'light'
+  return theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
+})
 </script>
 
 <template>
-  <div :class="['flex min-h-screen overflow-x-hidden', themeClass]">
-    <SidebarInvestor v-model:collapsed="sidebarCollapsed" :menuItems="sidebarMenu" />
+  <div :class="['flex flex-col min-h-screen overflow-x-hidden', themeClass]">
+    <!-- Header -->
+    <HeaderInvestor
+      :user="user"
+      :profileUrl="profileUrl"
+      :logoutUrl="logoutUrl"
+    />
 
-    <div class="flex-1 flex flex-col transition-all duration-300" :class="sidebarCollapsed ? 'ml-16' : 'ml-64'">
-      <HeaderInvestor
-        :user="user"
-        :profileUrl="profileUrl"
-        :logoutUrl="logoutUrl"
-        @toggle-sidebar="sidebarCollapsed = !sidebarCollapsed"
-      />
-      <main class="flex-1 overflow-auto p-6 transition-all duration-300">
-        <slot />
-      </main>
-    </div>
+    <!-- Konten utama -->
+    <main class="flex-1 overflow-auto p-6 transition-all duration-300">
+      <slot />
+    </main>
+
+    <!-- FooterBarInvestor (navigasi bawah) -->
+    <FooterBarInvestor v-model:collapsed="sidebarCollapsed" :menuItems="sidebarMenu" />
   </div>
 </template>

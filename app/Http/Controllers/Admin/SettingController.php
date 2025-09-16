@@ -56,11 +56,11 @@ class SettingController extends Controller
         $request->validate([
             'bank_name'    => 'nullable|string',
             'bank_number'  => 'nullable|string',
+            'bank_qr'      => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'academy_url'  => 'nullable|url',
             'tutorial_url' => 'nullable|url',
             'language'     => 'required|string|in:id,en',
             'theme'        => 'required|string|in:light,dark',
-        // validasi profit settings
             'profit_percent'            => 'nullable|numeric|min:0',
             'sponsor_fee_direct'        => 'nullable|numeric|min:0',
             'sponsor_fee_indirect'      => 'nullable|numeric|min:0',
@@ -72,24 +72,37 @@ class SettingController extends Controller
             'profit_percent_15days'     => 'nullable|numeric|min:0',
         ]);
 
-
         $user = Auth::user();
 
-        // ========================
-        // Update user preferences
-        // ========================
+        $qrPath = null;
+        if ($request->hasFile('bank_qr')) {
+            $file = $request->file('bank_qr');
+            $filename = \Illuminate\Support\Str::uuid() . '.' . $file->getClientOriginalExtension();
+
+            // Pastikan folder ada
+            if (!file_exists(public_path('storage/qrcode'))) {
+                mkdir(public_path('storage/qrcode'), 0777, true);
+            }
+
+            $file->move(public_path('storage/qrcode'), $filename);
+
+            $qrPath = 'qrcode/' . $filename;
+        }
+
+        // Update User Preference
         $preference = $user->preference()->firstOrNew([]);
-        $preference->currency    = 'USDT'; // fixed
+        $preference->currency    = 'USDT';
         $preference->bank_name   = $request->bank_name;
         $preference->bank_number = $request->bank_number;
+        if ($qrPath) {
+            $preference->bank_qr = $qrPath; // simpan path qr, misalnya: qrcode/xxxx.png
+        }
         $preference->language    = $request->language;
         $preference->theme       = $request->theme;
         $preference->user_id     = $user->id;
         $preference->save();
 
-        // ========================
-        // Update URL Settings
-        // ========================
+        // URL Settings
         $urlKeys = ['academy_url', 'tutorial_url', 'chatbot_url'];
         foreach ($urlKeys as $key) {
             if ($request->filled($key)) {
@@ -100,9 +113,7 @@ class SettingController extends Controller
             }
         }
 
-        // ========================
-        // Update Profit & Fee Settings
-        // ========================
+        // Profit & Fee Settings
         $profitKeys = [
             'profit_percent',
             'sponsor_fee_direct',

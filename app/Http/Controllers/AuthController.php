@@ -58,7 +58,7 @@ class AuthController extends Controller
     /**
      * Proses register
      */
-// Handle register
+    // Handle register
     public function register(Request $request)
     {
         // Validasi input
@@ -66,12 +66,12 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'wa' => ['required', 'string', 'max:20'], // ini akan disimpan di 'phone'
+            'wa' => ['required', 'string', 'max:20'],
             'konsultan_kode' => ['nullable', 'string', 'max:50'],
             'password' => ['required', 'string', 'min:6'],
         ]);
 
-        // Cek kode konsultan jika diisi
+        // Cek kode konsultan
         $consultantId = null;
         if (!empty($validated['konsultan_kode'])) {
             $consultant = User::where('referral_code', $validated['konsultan_kode'])->first();
@@ -83,7 +83,7 @@ class AuthController extends Controller
             $consultantId = $consultant->id;
         }
 
-        // Generate referral code unik
+        // Generate kode referral unik
         do {
             $referralCode = strtoupper(Str::random(6));
         } while (User::where('referral_code', $referralCode)->exists());
@@ -94,13 +94,13 @@ class AuthController extends Controller
                 'name' => $validated['name'],
                 'username' => $validated['username'],
                 'email' => $validated['email'],
-                'phone' => $validated['wa'], // disimpan di kolom phone
+                'phone' => $validated['wa'],
                 'password' => bcrypt($validated['password']),
                 'role' => 'investor',
                 'is_consultant' => 0,
+                'is_active' => 1,
                 'referral_code' => $referralCode,
                 'konsultan_id' => $consultantId,
-                'is_active' => 1,
             ]);
 
             // Login otomatis
@@ -112,7 +112,6 @@ class AuthController extends Controller
                 'dashboard' => route('dashboard'),
             ]);
         } catch (\Exception $e) {
-            // Tangani error server, kirim ke frontend
             return response()->json([
                 'errors' => ['server' => $e->getMessage()]
             ], 500);

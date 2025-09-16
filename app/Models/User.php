@@ -8,7 +8,6 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 
 use App\Models\Investment;
-use App\Models\Referral;
 use App\Models\Commission;
 use App\Models\Profit;
 use App\Models\Withdrawal;
@@ -34,12 +33,15 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'username',
         'email',
         'phone',
         'password',
         'role',
         'is_consultant',
         'is_active',
+        'referral_code',   // kode referral
+        'konsultan_id',    // id sponsor/konsultan
         'last_login_at',
     ];
 
@@ -51,7 +53,7 @@ class User extends Authenticatable
     protected $casts = [
         'password' => 'hashed',
         'last_login_at' => 'datetime',
-        'is_active' => 'boolean', // 🔹 cast ke boolean
+        'is_active' => 'boolean',
     ];
 
     /* ========================
@@ -63,14 +65,9 @@ class User extends Authenticatable
         return $this->hasMany(Investment::class);
     }
 
-    public function sponsor()
-    {
-        return $this->belongsTo(User::class, 'sponsor_id');
-    }
-
     public function referrals()
     {
-        return $this->hasMany(Referral::class, 'sponsor_id');
+        return $this->hasMany(User::class, 'konsultan_id'); // pastikan kolom sponsor_id/konsultan_id sesuai di DB
     }
 
     public function commissions()
@@ -109,5 +106,30 @@ class User extends Authenticatable
     public function getStatusAttribute(): string
     {
         return $this->is_active ? 'Aktif' : 'Nonaktif';
+    }
+
+    /* ========================
+     |  REFERRAL RECURSIVE
+     |======================== */
+    public function referralCountByLevel(int $level): int
+    {
+        if ($level === 1) {
+            return $this->referrals()->count();
+        }
+
+        $count = 0;
+        foreach ($this->referrals as $ref) {
+            $count += $ref->referralCountByLevel($level - 1);
+        }
+        return $count;
+    }
+
+    public function referralSummary(int $maxLevel = 3): array
+    {
+        $summary = [];
+        for ($i = 1; $i <= $maxLevel; $i++) {
+            $summary[$i] = $this->referralCountByLevel($i);
+        }
+        return $summary;
     }
 }

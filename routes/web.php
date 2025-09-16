@@ -10,7 +10,8 @@ use App\Http\Controllers\WalletController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TarikTunaiController;
 use App\Http\Controllers\SettingController;
-use App\Http\Controllers\KarirController; // ✅ BENAR - di folder utama
+use App\Http\Controllers\KarirController;
+use App\Http\Controllers\DashboardController;
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminInvestmentController;
@@ -21,8 +22,6 @@ use App\Http\Controllers\Admin\AdminWithdrawController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\InvestmentPackagesController;
 use App\Http\Controllers\Admin\AdminReferralController;
-
-use App\Http\Controllers\DashboardController;
 
 use App\Models\Announcement;
 use App\Models\Setting;
@@ -126,9 +125,40 @@ Route::middleware('auth')->group(function () {
     });
 
     // ========================
-    // Karir Route (Investor) - ✅ SUDAH BENAR
+    // Karir Route (Investor)
     // ========================
     Route::get('/karir', [KarirController::class, 'index'])->name('karir');
+
+    // ========================
+    // Profile (Investor)
+    // ========================
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::post('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
+    Route::post('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
+
+    // ========================
+    // Tarik Tunai
+    // ========================
+    Route::get('/tarik-tunai', [TarikTunaiController::class, 'index'])->name('tarik.index');
+    Route::post('/tarik-tunai', [TarikTunaiController::class, 'store'])->name('tarik.store');
+
+    // ========================
+    // Deposit Routes (Investor)
+    // ========================
+    Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
+    Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
+    Route::get('/investor/wallet-balance', [DashboardController::class, 'getWalletBalance']);
+
+    // ========================
+    // Dompet (Wallet)
+    // ========================
+    Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
+
+    // Endpoint API untuk validasi kode konsultan/referral
+    Route::get('/check-referral/{code}', function($code) {
+        $exists = \App\Models\User::where('referral_code', $code)->exists();
+        return response()->json(['valid' => $exists]);
+    });
 
     // ========================
     // Admin Routes
@@ -136,7 +166,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['isAdmin'])->prefix('admin')->group(function () {
 
         // ========================
-        // Admin Profile - DIPERBAIKI
+        // Admin Profile
         // ========================
         Route::get('/profile', [AdminProfileController::class, 'index'])->name('admin.profile');
         Route::get('/profile/edit', [AdminProfileController::class, 'edit'])->name('admin.profile.edit');
@@ -187,36 +217,5 @@ Route::middleware('auth')->group(function () {
         // Admin Referrals
         Route::get('/referrals', [AdminReferralController::class, 'index'])
             ->name('admin.referrals.index');
-    });
-
-    // ========================
-    // Profile (Investor)
-    // ========================
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
-    Route::post('/profile/notifications', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
-    Route::post('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
-
-    // ========================
-    // Tarik Tunai
-    // ========================
-    Route::get('/tarik-tunai', [TarikTunaiController::class, 'index'])->name('tarik.index');
-    Route::post('/tarik-tunai', [TarikTunaiController::class, 'store'])->name('tarik.store');
-
-    // ========================
-    // Deposit Routes (Investor)
-    // ========================
-    Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
-    Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
-    Route::get('/investor/wallet-balance', [DashboardController::class, 'getWalletBalance']);
-
-    // ========================
-    // Dompet (Wallet)
-    // ========================
-    Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
-
-    // Endpoint API untuk validasi kode konsultan/referral
-    Route::get('/check-referral/{code}', function($code) {
-        $exists = \App\Models\User::where('referral_code', $code)->exists();
-        return response()->json(['valid' => $exists]);
     });
 });
