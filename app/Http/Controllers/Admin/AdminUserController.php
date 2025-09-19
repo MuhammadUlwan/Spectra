@@ -22,7 +22,7 @@ class AdminUserController extends Controller
         return Inertia::render('Admin/Users', [
             'auth'       => ['user' => Auth::user()],
             'logoutUrl'  => route('logout'),
-            'profileUrl'    => route('admin.profile'),
+            'profileUrl' => route('admin.profile'),
             'users'      => $users,
         ]);
     }
@@ -78,8 +78,8 @@ class AdminUserController extends Controller
             'is_active'      => (bool) $user->is_active,
             'status_label'   => $user->is_active ? 'Aktif' : 'Nonaktif',
             'last_login'     => $user->last_login_at ? $user->last_login_at->format('d M Y H:i') : '-',
-            'created_at'     => $user->created_at->format('d M Y H:i'),
-            'updated_at'     => $user->updated_at->format('d M Y H:i'),
+            'created_at'     => $user->created_at ? $user->created_at->format('d M Y H:i') : '-',
+            'updated_at'     => $user->updated_at ? $user->updated_at->format('d M Y H:i') : '-',
             'wallet_address' => $user->wallet_address ?? '',
         ];
     }

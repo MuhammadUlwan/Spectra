@@ -10,6 +10,7 @@ use App\Http\Controllers\WalletController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TarikTunaiController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\AffiliateController;
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminInvestmentController;
@@ -21,9 +22,22 @@ use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AffiliateLevelController;
 use App\Http\Controllers\Admin\AffiliateBonusRuleController;
 
+use App\Models\User;
+use App\Models\UserPreference;
 use App\Models\Announcement;
 use App\Models\Referral;
 use App\Models\Setting;
+
+// Endpoint untuk ambil preferensi bank admin
+Route::get('/company-preferences', function () {
+    $admin = User::where('role', 'admin')->first(); // cari admin pertama
+    if (!$admin) {
+        return response()->json(['error' => 'Admin not found'], 404);
+    }
+
+    $pref = UserPreference::where('user_id', $admin->id)->first();
+    return response()->json($pref);
+});
 
 // ========================
 // Default Route
@@ -41,6 +55,12 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+
+    // Endpoint API untuk validasi kode konsultan/referral (public)
+    Route::get('/check-referral/{code}', function($code) {
+        $exists = \App\Models\User::where('referral_code', $code)->exists();
+        return response()->json(['valid' => $exists]);
+    });
 });
 
 // Logout
@@ -52,7 +72,6 @@ Route::post('/logout', [AuthController::class, 'logout'])
 // Protected Routes
 // ========================
 Route::middleware('auth')->group(function () {
-
     // ========================
     // Dashboard umum (Investor / Admin)
     // ========================
@@ -213,6 +232,10 @@ Route::middleware('auth')->group(function () {
     // ========================
     Route::get('/deposit', [DepositController::class, 'index'])->name('deposit.index');
     Route::post('/deposit', [DepositController::class, 'store'])->name('deposit.store');
+    Route::post('/investor/deposit/proof', [DepositController::class, 'uploadProof'])->middleware('auth');
+
+    // Cek apakah user sudah punya deposit pending
+    Route::get('/investor/deposit/check-pending', [DepositController::class, 'checkPending'])->middleware('auth');
 
     Route::get('/investor/wallet-balance', [WalletController::class, 'getWalletBalance']);
     Route::get('/dompet', [WalletController::class, 'index'])->name('dompet');
@@ -226,13 +249,20 @@ Route::middleware('auth')->group(function () {
     // ========================
     // Investor Karir & Referral
     // ========================
-    Route::get('/karir', function () {
+    Route::middleware('auth')->get('/karir', function () {
         $user = Auth::user();
-
         return Inertia::render('Investor/Karir', [
             'auth' => ['user' => $user],
             'referralCode' => $user->referral_code,
         ]);
     })->name('karir');
+
+    // ========================
+    // API referral
+    // ========================
+    Route::middleware('auth')->prefix('api')->group(function () {
+        Route::get('/referrals-summary', [\App\Http\Controllers\AffiliateController::class, 'summary']);
+        Route::get('/referrals-tree', [\App\Http\Controllers\AffiliateController::class, 'tree']);
+    });
 
 });

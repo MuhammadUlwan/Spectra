@@ -50,15 +50,18 @@ class AuthController extends Controller
     /**
      * Tampilkan halaman register
      */
-    public function showRegister()
+    public function showRegister(Request $request)
     {
-        return inertia('Auth/Register');
+        $referralCode = $request->query('ref'); // Ambil ?ref=XXXX dari URL
+
+        return inertia('Auth/Register', [
+            'referralCode' => $referralCode, // lempar ke props Vue
+        ]);
     }
 
     /**
      * Proses register
      */
-    // Handle register
     public function register(Request $request)
     {
         // Validasi input
@@ -96,20 +99,18 @@ class AuthController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['wa'],
                 'password' => bcrypt($validated['password']),
-                'role' => 'investor',
-                'is_consultant' => 0,
+                'role' => 'investor',      // ✅ default langsung investor
+                'is_consultant' => 0,      // ✅ default bukan konsultan
                 'is_active' => 1,
                 'referral_code' => $referralCode,
                 'konsultan_id' => $consultantId,
             ]);
 
-            // Login otomatis
-            Auth::login($user);
-
+            // Jangan auto login, langsung redirect ke login
             return response()->json([
                 'success' => true,
                 'referral_code' => $user->referral_code,
-                'dashboard' => route('dashboard'),
+                'login' => route('login'),
             ]);
         } catch (\Exception $e) {
             return response()->json([

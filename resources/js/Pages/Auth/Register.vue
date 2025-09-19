@@ -144,7 +144,7 @@ watch(() => form.konsultan_kode, debounce(async (newVal) => {
   }
   try {
     // Pastikan request ke endpoint yang benar
-    const res = await axios.get(`/api/check-referral?kode=${newVal}`)
+    const res = await axios.get(`/check-referral/${newVal}`)
     console.log(res.data) // <-- debug, lihat valid true/false
     isReferralValid.value = res.data.valid
     if (!res.data.valid) errors.konsultan_kode = 'Kode konsultan tidak valid'
@@ -170,9 +170,11 @@ const submit = async () => {
   isLoading.value = true
 
   try {
-    const res = await axios.post('/register', {...form})
-    alert('Akun berhasil dibuat! Kode referral Anda: ' + res.data.referral_code)
-    window.location.href = res.data.dashboard
+    const res = await axios.post('/register', {...form}, {
+      headers: { 'Accept': 'application/json' }
+    })
+    alert('Akun berhasil dibuat! Silakan login untuk melanjutkan. Kode referral Anda: ' + res.data.referral_code)
+    window.location.href = res.data.login
   } catch (err) {
     if(err.response?.data?.errors) Object.assign(errors, err.response.data.errors)
     else alert('Terjadi kesalahan server, coba lagi.')

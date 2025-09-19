@@ -6,9 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Investment;
 use App\Models\Profit;
-use App\Models\Commission;
+use App\Models\AffiliateCommission;
 use App\Models\Announcement;
-use App\Models\Setting;
 
 class DashboardController extends Controller
 {
@@ -16,82 +15,92 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Deposit aktif
-        $depositBalance = (float) Investment::where('user_id', $user->id)
-            ->where('status', 'active')
+        // ===== Hitung deposit aktif =====
+        $depositBalance = Investment::where('user_id', $user->id)
+            ->whereIn('status', ['active', 'success', 'completed', 'paid'])
             ->sum('amount');
-        $depositBalance = round($depositBalance, 2);
 
-        // Total profit paid via wallet
-        $totalProfit = (float) Profit::where('user_id', $user->id)
+        // Ambil deposit pertama user (kalau ada)
+        $firstDeposit = Investment::where('user_id', $user->id)
+            ->orderBy('created_at', 'asc')
+            ->value('amount') ?? 0;
+
+        // ===== Total Profit paid =====
+        $totalProfit = Profit::where('user_id', $user->id)
             ->where('status', 'paid')
-            ->where('withdraw_method', 'wallet')
             ->sum('profit_amount');
-        $totalProfit = round($totalProfit, 2);
 
-        // Total commission paid via wallet
-        $totalCommissions = (float) Commission::where('user_id', $user->id)
+        // ===== Extra Bonus =====
+        $extraBonus = AffiliateCommission::where('user_id', $user->id)
+            ->where('type', 'bonus')
             ->where('status', 'paid')
-            ->where('withdraw_method', 'wallet')
             ->sum('amount');
-        $totalCommissions = round($totalCommissions, 2);
 
-        // Total wallet = deposit + profit + commissions
-        $walletBalance = round($depositBalance + $totalProfit + $totalCommissions, 2);
+        // ===== Sponsor Fee =====
+        $sponsorFee = AffiliateCommission::where('user_id', $user->id)
+            ->where('status', 'paid')
+            ->whereIn('type', ['sponsor', 'sponsor_fee', 'affiliate_bonus'])
+            ->sum('amount');
 
-        // Ambil pengumuman aktif
+        // ===== Total Wallet =====
+        $walletBalance = $depositBalance + $totalProfit + $extraBonus + $sponsorFee;
+
+        // ===== Ambil pengumuman aktif =====
         $announcements = Announcement::where('active', 1)
             ->orderBy('order')
-            ->get();
-
-
-        // Controllers/Investor/DashboardController.php (atau yang setara)
-
-        $settings = Setting::whereIn('key_name', ['url_chatbot','url_tutorial','url_academy'])
-                    ->pluck('value','key_name')
-                    ->toArray();
+            ->get()
+            ->map(fn($a) => [
+                'id'        => $a->id,
+                'title'     => $a->title,
+                'image_url' => $a->image_url,
+            ]);
 
         return Inertia::render('Investor/DashboardInvestor', [
             'auth'           => ['user' => $user],
             'walletBalance'  => $walletBalance,
             'depositBalance' => $depositBalance,
             'totalProfit'    => $totalProfit,
+            'extraBonus'     => $extraBonus,
+            'sponsorFee'     => $sponsorFee,
             'announcements'  => $announcements,
-            'urls' => [
-                'academy'  => $settings['url_academy'] ?? '',
-                'tutorial' => $settings['url_tutorial'] ?? '',
-                'chatbot'  => $settings['url_chatbot'] ?? '',
-            ],
             'logoutUrl'      => route('logout'),
             'profileUrl'     => route('profile'),
+            'pendingDeposit' => $firstDeposit < 10, // true jika belum deposit ≥ 10
+            'firstDeposit'   => $firstDeposit,
         ]);
-    }
+    }   
 
+    // API untuk refresh wallet balance via axios
     public function getWalletBalance()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        $depositBalance = (float) Investment::where('user_id', $user->id)
-            ->where('status', 'active')
+        $depositBalance = Investment::where('user_id', $user->id)
+            ->whereIn('status', ['active', 'success', 'completed', 'paid'])
             ->sum('amount');
 
-        $totalProfit = (float) Profit::where('user_id', $user->id)
+        $totalProfit = Profit::where('user_id', $user->id)
             ->where('status', 'paid')
-            ->where('withdraw_method', 'wallet')
             ->sum('profit_amount');
 
-        $totalCommissions = (float) Commission::where('user_id', $user->id)
+        $extraBonus = AffiliateCommission::where('user_id', $user->id)
+            ->where('type', 'bonus')
             ->where('status', 'paid')
-            ->where('withdraw_method', 'wallet')
             ->sum('amount');
 
-        $walletBalance = round($depositBalance + $totalProfit + $totalCommissions, 2);
+        $sponsorFee = AffiliateCommission::where('user_id', $user->id)
+            ->where('status', 'paid')
+            ->whereIn('type', ['sponsor', 'sponsor_fee', 'affiliate_bonus'])
+            ->sum('amount');
+
+        $walletBalance = $depositBalance + $totalProfit + $extraBonus + $sponsorFee;
 
         return response()->json([
-            'walletBalance' => $walletBalance,
+            'walletBalance'  => $walletBalance,
             'depositBalance' => $depositBalance,
-            'totalProfit' => $totalProfit,
+            'totalProfit'    => $totalProfit,
+            'extraBonus'     => $extraBonus,
+            'sponsorFee'     => $sponsorFee,
         ]);
     }
-
 }
